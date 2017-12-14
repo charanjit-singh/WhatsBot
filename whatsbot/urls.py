@@ -22,5 +22,7 @@ from wbot import views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url('^$',views.login),
-    url(r'^dashboard/',views.dashboard),
+    url(r'^dashboard/$',views.dashboard),
+    url(r'^registerBot/$',views.registerbot),
+    url(r'sendotp/',views.sendOtp),
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+  <h1>
+    Registration
+    <!-- <small>Version 2.0</small> -->
+  </h1>
+  <!-- <ol class="breadcrumb"> -->
+  <!--   <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li> -->
+  <!--   <li class="active">Dashboard</li> -->
+  <!-- </ol> -->
+</section>
+
+<!-- Main content -->
+<section class="content">
+  <!-- Info boxes -->
+  <div class="row">
+    <div class="col-xs-12">
+
+      <div class="box box-warning">
+        <div class="box-header">
+          <h3 class="box-title">Register a Bot</h3>
+          <div class="box-tools">
+            <div class="input-group input-group-sm" style="width: 150px;">
+            </div>
+          </div>
+
+          <div class="row">
+            <div class="col-xs-12">
+
+              <h2>Verify your Bot's phone number</h2>
+              <p>WhatsBot will send a one time SMS message to verify your Bot's phone number.</p>
+              <p>Please confirm the country code and enter the phone number.</p>
+              <form class="form" id = 'otpForm' method="POST" action = ''>
+                {% csrf_token %}
+                <div class="form-group">
+                  <label for="cc">Country Code </label>
+                  <input class="form-control" id="cc" name = "cc"type="text" placeholder="Ex: 91" value="91">
+                </div>
+                <div class="form-group">
+                  <label for="ph">Phone number</label>
+                  <input class="form-control" id="ph" type="text" name = "ph" placeholder="10 digit phone number">
+                </div>
+                <div class="form-group">
+                  <button type="button" class="btn bg-green" id="sendOtpBtn" onclick="sendOtp()">Send OTP</button>
+                </div>
+              </form>
+            </div>
+
+          </div>
+        </div>
+
+
+
+      </div>
+
+    </div>
+  </div>
+  <!-- /.row -->
+
+</section>
+<!-- /.content -->
+{% endblock %}
+
+{% block footerScripts %}
+<script>
+function sendOtp(){
+  var countryCode = $('#cc').val();
+  var phoneNumber = $('#ph').val();
+  if(countryCode[0] == '+')
+  countryCode = countryCode.substring(1, countryCode.length);
+  var completeNumber = countryCode + phoneNumber;
+  console.log(completeNumber);
+  // Ajax call to send the countryCode and completeNumber to backend, which will send an otp to this number
+
+  $.get( "sendotp/?cc="+countryCode+"&ph="+completeNumber, function( result ) {
+
+    // On ajax call success, check the result.
+    //        On failure, show error toastr
+    if (result['status'] == "'fail'")
+    {
+      if (result['reason'] == "'blocked'") {
+        toastr.error('The number has been blocked. Please try another number.');
+      }
+      else if (result['reason'] == "'too_recent'") {
+        toastr.error("An OTP has already been sent. Please try after sometime.");
+      }
+      else {
+        toastr.error("Please enter a valid phone number.");
+      }
+    }
+    //If it is successful, show a toastr saying "The OTP has been sent"
+    //then show a textbox having label "Enter OTP" and a button saying "Verify". Remove #sendOtpBtn.
+    else {
+      toastr.success("The OTP has been sent successfuly.");
+      var html=`
+      <div class="form-group">
+        <label for="otp">Enter OTP</label>
+        <input class="form-control" name ="otp" id="otp" type="text" placeholder="6 digit OTP.">
+      </div>
+      <div class="form-group">
+        <button type="submit" class="btn bg-green" name = "verifyOtp" >Verify OTP</button>
+      </div>
+
+      `;
+
+
+    }
+
+
+    console.log(result);
+
+  });
+
+}</script>
+{% endblock %}
