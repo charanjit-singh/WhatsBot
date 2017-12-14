@@ -75,5 +75,5 @@ def sendOtp(request):
     dictv = {}
     phoneNumber = request.GET.get('ph')
     countryCode = request.GET.get('cc')
-    dictv = getcode(phoneNumber,countryCode,'voice')
+    dictv = getcode(phoneNumber,countryCode,'sms')
     return JsonResponse(dictv)

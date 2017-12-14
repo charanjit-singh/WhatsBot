@@ -74,10 +74,12 @@ function sendOtp(){
   countryCode = countryCode.substring(1, countryCode.length);
   var completeNumber = countryCode + phoneNumber;
   console.log(completeNumber);
+  $('#sendOtpBtn').addClass('disabled')
   // Ajax call to send the countryCode and completeNumber to backend, which will send an otp to this number
 
   $.get( "sendotp/?cc="+countryCode+"&ph="+completeNumber, function( result ) {
 
+    $('#sendOtpBtn').removeClass('disabled')
     // On ajax call success, check the result.
     //        On failure, show error toastr
     if (result['status'] == "'fail'")
@@ -98,11 +100,11 @@ function sendOtp(){
       toastr.success("The OTP has been sent successfuly.");
       var html=`
       <div class="form-group">
-        <label for="otp">Enter OTP</label>
-        <input class="form-control" name ="otp" id="otp" type="text" placeholder="6 digit OTP.">
+      <label for="otp">Enter OTP</label>
+      <input class="form-control" name ="otp" id="otp" type="text" placeholder="6 digit OTP.">
       </div>
       <div class="form-group">
-        <button type="submit" class="btn bg-green" name = "verifyOtp" >Verify OTP</button>
+      <button type="submit" class="btn bg-green" name = "verifyOtp" >Verify OTP</button>
       </div>
 
       `;
