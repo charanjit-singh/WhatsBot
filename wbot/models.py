@@ -17,7 +17,8 @@ class Bot(models.Model):
     bot_phone = models.CharField(max_length=13)
     bot_otp = models.CharField(max_length=7)
     bot_pwd = models.CharField(max_length=60)
-    bot_state = models.IntegerField()
+    bot_state = models.IntegerField(default= 0)
+    # 0 = Active, 1  = Blocked
 
 # Admin is  Owner of Bot #
 class AdminBot(models.Model):

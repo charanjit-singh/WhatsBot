@@ -1,51 +1,87 @@
 {% extends 'base.html' %}
+
+
 {% block content %}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <h1>
+        Bots
+        <!-- <small>Version 2.0</small> -->
+    </h1>
+    <!-- <ol class="breadcrumb"> -->
+    <!--   <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li> -->
+    <!--   <li class="active">Dashboard</li> -->
+    <!-- </ol> -->
+</section>
 
-  <div class="container">
-<table class="table table-striped">
-<thead>
-  <tr>
-    <th>
-      Bot id
-    </th>
-    <th>
-      Bot phone
-    </th>
-    <th>
-      Bot password
-    </th>
-    <th>
-      Bot state
-    </th>
+<!-- Main content -->
+<section class="content">
+    <!-- Info boxes -->
+    <div class="row">
+        <div class="col-xs-12">
 
-  </tr>
-</thead>
-<tbody>
-{% for AdminBot in AdminBots %}
+            <div class="box box-success">
+                <div class="box-header">
+                    <h3 class="box-title">Bot List</h3>
+                    <div class="box-tools">
+                        <div class="input-group input-group-sm" style="width: 150px;">
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body table-responsive no-padding">
+                  <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>
+                        Bot Number
+                      </th>
+                      <th>
+                        Mobile Number
+                      </th>
 
+                      <th>
+                        Status
+                      </th>
 
-<tr>
-  <td>
-  {{AdminBot.bot_id.id}}
-  </td>
-  <td>
-  {{AdminBot.bot_id.bot_phone}}
-  </td>
-  <td>
-  {{AdminBot.bot_id.bot_pwd}}
-  </td>
-  <td>
-
-  {{AdminBot.bot_id.bot_state}}
-  </td>
-
-</tr>
+                    </tr>
+                  </thead>
+                  <tbody>
+                  {% for AdminBot in AdminBots %}
 
 
-{% endfor %}
-</tbody>
-</table>
+                  <tr>
+                    <td>
+                    {{AdminBot.bot_id.id}}
+                    </td>
+                    <td>
+                    {{AdminBot.bot_id.bot_phone}}
+                    </td>
+                    <td>
+                  {%if AdminBot.bot_id.bot_state == 0 %}
+                  <label class="label label-success">Active</label>
+                  {%else %}
+                  <label class="label label-danger">Blocked</label>
 
-</div>
+                  {%endif%}
+                    </td>
 
+                  </tr>
+
+
+                  {% endfor %}
+                  </tbody>
+                  </table>
+
+                </div>
+                <!-- /.box-body
+                -->
+            </div>
+
+        </div>
+    </div>
+    <!-- /.row -->
+
+</section>
+<!-- /.content -->
 {% endblock %}
