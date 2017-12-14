@@ -106,6 +106,8 @@ function sendOtp(){
       </div>
 
       `;
+      $('#sendOtpBtn').remove();
+      $('#otpForm').append(html);
 
 
     }
@@ -115,5 +117,13 @@ function sendOtp(){
 
   });
 
-}</script>
+}
+
+{% if status == "'ok'" %}
+toastr.success('The bot has been successfuly created.');
+{%elif status == "'fail'" %}
+toastr.error('Could not verfiy the OTP. Please try again later.')
+{% endif %}
+
+</script>
 {% endblock %}

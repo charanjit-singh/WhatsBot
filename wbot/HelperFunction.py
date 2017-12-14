@@ -13,7 +13,9 @@ def getcode(phone,cc,mode="sms"):
     dictionary_ = {}
     for data in output:
         datasplit=data.split(':')
-        dictionary_[datasplit[0]]=str(datasplit[1])[datasplit[1].find('\''):]
+
+        if len(datasplit) > 1:
+            dictionary_[datasplit[0]]=str(datasplit[1])[datasplit[1].find('\''):]
     return dictionary_
     #output=output[output.find('status'):]
     #output=output[output.find('b\''):]
@@ -37,3 +39,38 @@ def getcode(phone,cc,mode="sms"):
     #
     # except KeyError:
     #     print('WhatsApp Servers Are Busy')
+
+
+
+
+
+def registercode(phone,cc,code):
+    process=subprocess.Popen(["yowsup-cli","registration","-R",code,"-p",phone,"-C",cc],stdout=subprocess.PIPE)
+    output, error = process.communicate()
+    print(output)
+    output=output.decode('ASCII')
+    output=output[output.find('\n\n\n'):]
+    output=output[3:-1]
+    output=output.split('\n')
+    dictionary_ = {}
+    print(output,error)
+    for data in output:
+        datasplit=data.split(':')
+        print(datasplit)
+        if len(datasplit) > 1:
+            dictionary_[datasplit[0]]=str(datasplit[1])[datasplit[1].find('\''):]
+
+    print(dictionary_)
+    return dictionary_
+    # print(dictionary_)
+    # try:
+    #     if dictionary_['status']=="'ok'":
+    #         try:
+    #             password=dictionary_['pw']
+    #             print("password = "+password)
+    #         except KeyError:
+    #             print('Number REgistration Failure')
+    #     elif dictionary_['status']=="'fail'":
+    #         print("Wrong Code Enter Correct one")
+    # except KeyError:
+    #     print('Server Error')
