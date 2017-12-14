@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block content %}
+
+  <div class="container">
+<table class="table table-striped">
+<thead>
+  <tr>
+    <th>
+      Bot id
+    </th>
+    <th>
+      Bot phone
+    </th>
+    <th>
+      Bot password
+    </th>
+    <th>
+      Bot state
+    </th>
+
+  </tr>
+</thead>
+<tbody>
+{% for AdminBot in AdminBots %}
+
+
+<tr>
+  <td>
+  {{AdminBot.bot_id.id}}
+  </td>
+  <td>
+  {{AdminBot.bot_id.bot_phone}}
+  </td>
+  <td>
+  {{AdminBot.bot_id.bot_pwd}}
+  </td>
+  <td>
+
+  {{AdminBot.bot_id.bot_state}}
+  </td>
+
+</tr>
+
+
+{% endfor %}
+</tbody>
+</table>
+
+</div>
+
+{% endblock %}

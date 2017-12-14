@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+        <!-- Meta, title, CSS, favicons, etc. -->
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="shortcut icon" href="/static/images/bright_logo_round.png">
+
+        <title>Login | WhatsBot Dashboard</title>
+
+        <!-- Bootstrap -->
+        <link href="/static/bootstrap.min.css" rel="stylesheet">
+        <!-- Font Awesome -->
+        <link href="/static/font-awesome.min.css" rel="stylesheet">
+        <!-- NProgress -->
+        <link href="/static/nprogress.css" rel="stylesheet">
+        <!-- Animate.css -->
+        <link href="/static/animate.min.css" rel="stylesheet">
+
+        <!-- Jquery -->
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.1.1/jquery.min.js" charset="utf-8"></script>
+        <!-- Latest compiled and minified JavaScript -->
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js" integrity="sha384-Tc5IQib027qvyjSMfHjOMaLkfuWVxZxUPnCJA7l2mCWNIpG9mGCD8wGNIcPD7Txa" crossorigin="anonymous"></script>
+
+        <!-- Toastr -->
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/css/toastr.css" type="text/css" media="screen" title="no title" charset="utf-8">
+        <script type="text/javascript" charset="utf-8" src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/js/toastr.min.js"></script>
+
+        <!-- Custom Theme Style -->
+        <link href="/static/custom.css" rel="stylesheet">
+    </head>
+
+    <body class="login">
+        <div>
+            <a class="hiddenanchor" id="signup"></a>
+            <a class="hiddenanchor" id="signin"></a>
+
+            <div class="login_wrapper">
+                <div class="animate form login_form">
+                    <img src="/static/images/bright_logo_round.png" style="width: 50%;margin-left: 50%;transform: translateX(-50%);" alt=""/><section class="login_content">
+                        <form class="" action="/" method="POST">
+                            {% csrf_token %}
+                            <h1>Login | WhatsBot Dashboard</h1>
+                            <div>
+                              <input type="text" name = "username" class="form-control">
+
+                            </div>
+                            <div>
+                              <input type="password" name = "password" class="form-control">
+
+                            </div>
+                            <div>
+                                <button class="btn btn-default submit" type="submit">Login</a>
+                                <!-- <a class="reset_pass" href="#">Lost your password?</a> -->
+                            </div>
+
+                            <div class="clearfix"></div>
+
+                            <div class="separator">
+                                <!-- <p class="change_link">New to site? -->
+                                <!--   <a href="#signup" class="to_register"> Create Account </a> -->
+                                <!-- </p> -->
+
+                                <div class="clearfix"></div>
+                                <br />
+
+                                <div>
+                                    <h1><i class="fa fa-tachometer"></i> WahtsBot Dashboard</h1>
+                                    <p>©2017 All Rights Reserved. </p>
+                                </div>
+                            </div>
+                        </form>
+                    </section>
+                </div>
+
+            </div>
+        </div>
+        {% if error %}
+        <script type="text/javascript" charset="utf-8">
+toastr.error('{{ error }}');
+        </script>
+        {% endif %}
+    </body>
+</html>
