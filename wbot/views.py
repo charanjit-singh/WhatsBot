@@ -5,6 +5,8 @@ from django.shortcuts import get_object_or_404
 from .models import *
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .HelperFunction import *
+from django.contrib.auth import logout
+
 
 
 
@@ -104,3 +106,13 @@ def messageDetails(request,pk):
     obj_details = MessageStatus.objects.filter(message_id =messageID )
     dictv['Details'] = obj_details
     return render(request,'message_details.html',dictv)
+
+
+
+
+
+@login_required
+@user_passes_test(hasAdmin)
+def logout_view(request):
+    logout(request)
+    return HttpResponseRedirect('/')
