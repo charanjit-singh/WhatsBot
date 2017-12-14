@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+
+{% block content %}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <h1>
+        Messages
+        <!-- <small>Version 2.0</small> -->
+    </h1>
+    <!-- <ol class="breadcrumb"> -->
+    <!--   <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li> -->
+    <!--   <li class="active">Dashboard</li> -->
+    <!-- </ol> -->
+</section>
+
+<!-- Main content -->
+<section class="content">
+    <!-- Info boxes -->
+    <div class="row">
+        <div class="col-xs-12">
+
+            <div class="box box-info">
+                <div class="box-header">
+                    <h3 class="box-title">Messages List</h3>
+                    <div class="box-tools">
+                        <div class="input-group input-group-sm" style="width: 150px;">
+                        </div>
+                    </div>
+                </div>
+                <!-- /.box-header -->
+                <div class="box-body table-responsive no-padding">
+                  <table class="table table-striped">
+                  <thead>
+                    <tr>
+                      <th>
+                        Message ID
+                      </th>
+                      <th>
+                        Message Text
+                      </th>
+                      <th>
+                        List Link
+                      </th>
+                      <th>
+                        Details
+                      </th>
+
+                    </tr>
+                  </thead>
+                  <tbody>
+                  {% for message in Messages %}
+                  <tr>
+                    <td>
+                    {{message.id}}
+                    </td>
+                    <td>
+                    {{message.message_text}}
+                    </td>
+                    <td>
+                      <a href ='{{message.csvFile.url}}' class = 'bg-info'> Download</a>
+                    </td>
+                    <td>
+
+<a href='/messages/{{message.id}}' class="btn bg-info" role="button">Details</a>
+
+                    </td>
+
+                  </tr>
+
+
+                  {% endfor %}
+                  </tbody>
+                  </table>
+
+                </div>
+                <!-- /.box-body
+                -->
+            </div>
+
+        </div>
+    </div>
+    <!-- /.row -->
+
+</section>
+<!-- /.content -->
+{% endblock %}

@@ -25,4 +25,6 @@ urlpatterns = [
     url(r'^dashboard/$',views.dashboard),
     url(r'^registerBot/$',views.registerbot),
     url(r'sendotp/',views.sendOtp),
+    url(r'messages/$',views.messages),
+    url(r'messages/(?P<pk>[0-9]+)/',views.messageDetails),
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

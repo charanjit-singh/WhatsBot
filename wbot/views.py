@@ -77,3 +77,30 @@ def sendOtp(request):
     countryCode = request.GET.get('cc')
     dictv = getcode(phoneNumber,countryCode,'sms')
     return JsonResponse(dictv)
+
+
+
+@login_required
+@user_passes_test(hasAdmin)
+def  messages(request):
+    dictv = {}
+
+    obj_Admin = get_object_or_404(Admin,authUser = request.user)
+    obj_messages = Message.objects.filter( admin = obj_Admin ).order_by('-pk')
+    dictv['Messages'] = obj_messages
+    return render(request,'messages.html',dictv)
+
+
+
+
+# Using Get request to get Message Id
+# and thus Corresponding Details
+@login_required
+@user_passes_test(hasAdmin)
+def messageDetails(request,pk):
+    dictv = {}
+    messageID= pk
+    print("messageID: " ,messageID)
+    obj_details = MessageStatus.objects.filter(message_id =messageID )
+    dictv['Details'] = obj_details
+    return render(request,'message_details.html',dictv)
