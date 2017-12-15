@@ -31,7 +31,7 @@
                 </div>
                 <!-- /.box-header -->
                 <div class="box-body table-responsive no-padding">
-                  <table class="table table-striped">
+                  <table id="messageDetailsTable" class="table table-striped">
                   <thead>
                     <tr>
                       <th>
@@ -90,4 +90,12 @@
 
 </section>
 <!-- /.content -->
+{% endblock %}
+
+{% block footerScripts %}
+<script>
+$('#messageDetailsTable').DataTable({
+   "order": [[ 2, 'desc' ]]
+});
+</script>
 {% endblock %}

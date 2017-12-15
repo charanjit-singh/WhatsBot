@@ -1,0 +1,28 @@
+    def Msgless:
+        double check
+        time.sleep(random.randrange(1,3))
+        double check blue
+
+    def send_msg:
+        double check
+        time.sleep(random.randrange(2,5))
+        Available Presence
+        time.sleep(random.randrange(1,2))
+        check blue
+        time.sleep(random.randrange(1,2))
+
+        STATE_TYPING
+        time.sleep(random.randrange(2,3))
+        send additional message
+        time.sleep(random.randrange(5,7))
+        STATE_TYPING
+        time.sleep(random.randrange(2,3))
+        STATE_PAUSED                            1778 tgalal
+        time.sleep(random.randrange(1,2))
+        STATE_TYPING
+        time.sleep(random.randrange(4,5))
+        send msg
+        STATE_PAUSED
+        Available Presence
+        time.sleep(random.randrange(1,2))
+        Unavailable Presence 

@@ -30,7 +30,7 @@
                 </div>
                 <!-- /.box-header -->
                 <div class="box-body table-responsive no-padding">
-                  <table class="table table-striped">
+                  <table id = 'BotStatusTable' class="table table-striped">
                   <thead>
                     <tr>
                       <th>
@@ -84,4 +84,12 @@
 
 </section>
 <!-- /.content -->
+{% endblock %}
+
+{% block footerScripts %}
+<script>
+$('#BotStatusTable').DataTable({
+   "order": [[ 2, 'asc' ]]
+});
+</script>
 {% endblock %}

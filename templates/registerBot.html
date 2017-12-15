@@ -78,7 +78,7 @@ function sendOtp(){
   // Ajax call to send the countryCode and completeNumber to backend, which will send an otp to this number
 
   $.get( "sendotp/?cc="+countryCode+"&ph="+completeNumber, function( result ) {
-
+console.log(result)
     $('#sendOtpBtn').removeClass('disabled')
     // On ajax call success, check the result.
     //        On failure, show error toastr
@@ -96,7 +96,7 @@ function sendOtp(){
     }
     //If it is successful, show a toastr saying "The OTP has been sent"
     //then show a textbox having label "Enter OTP" and a button saying "Verify". Remove #sendOtpBtn.
-    else {
+    else if (result['status'] == "'sent'") {
       toastr.success("The OTP has been sent successfuly.");
       var html=`
       <div class="form-group">
@@ -112,6 +112,9 @@ function sendOtp(){
       $('#otpForm').append(html);
 
 
+    }
+    else {
+      toastr.error('Internal Server Error: please try after some time')
     }
 
 

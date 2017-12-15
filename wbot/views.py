@@ -75,7 +75,10 @@ def sendOtp(request):
     dictv = {}
     phoneNumber = request.GET.get('ph')
     countryCode = request.GET.get('cc')
-    dictv = getcode(phoneNumber,countryCode,'sms')
+    print('Got Phone number ')
+    print(phoneNumber , countryCode )
+    dictv = getcode(phoneNumber,countryCode,'voice')
+    print(dictv)
     return JsonResponse(dictv)
 
 
@@ -84,7 +87,6 @@ def sendOtp(request):
 @user_passes_test(hasAdmin)
 def  messages(request):
     dictv = {}
-
     obj_Admin = get_object_or_404(Admin,authUser = request.user)
     obj_messages = Message.objects.filter( admin = obj_Admin ).order_by('-pk')
     dictv['Messages'] = obj_messages
@@ -93,7 +95,8 @@ def  messages(request):
 
 
 
-# Using Get request to get Message Id
+# Using Get request to get Message Id;
+
 # and thus Corresponding Details
 @login_required
 @user_passes_test(hasAdmin)
