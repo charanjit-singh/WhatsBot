@@ -85,7 +85,7 @@ function sendOtp(){
     if (result['status'] == "'fail'")
     {
       if (result['reason'] == "'blocked'") {
-        toastr.error('The number has been blocked. Please try another number.');
+        toastr.error('This number has been blocked. Please try another number.');
       }
       else if (result['reason'] == "'too_recent'") {
         toastr.error("An OTP has already been sent. Please try after sometime.");

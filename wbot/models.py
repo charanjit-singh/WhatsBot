@@ -41,6 +41,7 @@ class Message(models.Model):
     message_image = models.ImageField(blank = True, null = True)
     csvFile = models.FileField()
     admin = models.ForeignKey(Admin)
+    startedOn = models.DateTimeField(auto_now_add = True)
     # list_id = models.ForeignKey(contact_list)
 
 # Model to store Link of Csv or Xlsx Files

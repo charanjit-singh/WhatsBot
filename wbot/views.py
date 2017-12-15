@@ -57,10 +57,8 @@ def registerbot(request):
         ph = request.POST.get('ph')
         cc = request.POST.get('cc')
         otp = request.POST.get('otp')
-        print(cc)
-        print(ph)
+
         ph = str(cc)+str(ph)
-        print(ph)
         dictv = registercode(ph,cc,otp)
         print(dictv)
         if dictv.get('status') == "'ok'":
@@ -116,3 +114,13 @@ def messageDetails(request,pk):
 def logout_view(request):
     logout(request)
     return HttpResponseRedirect('/')
+
+
+
+
+
+
+@login_required
+@user_passes_test(hasAdmin)
+def mediafetch(request):
+    return HttpResponseRedirect(request.get_full_path())
