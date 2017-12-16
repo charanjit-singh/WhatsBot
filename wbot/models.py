@@ -39,7 +39,7 @@ class Message(models.Model):
     # isMedia = models.BooleanField(default=False)
     message_text = models.CharField(max_length=1000, blank = True, null = True)
     message_image = models.ImageField(blank = True, null = True)
-    csvFile = models.FileField()
+    csvFile = models.CharField(max_length=1000)
     admin = models.ForeignKey(Admin)
     startedOn = models.DateTimeField(auto_now_add = True)
     # list_id = models.ForeignKey(contact_list)

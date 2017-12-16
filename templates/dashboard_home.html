@@ -60,8 +60,12 @@
                     <td>
                   {%if AdminBot.bot_id.bot_state == 0 %}
                   <label class="label label-success">Active</label>
-                  {%else %}
+                  {%elif AdminBot.bot_id.bot_state == 1 %}
                   <label class="label label-danger">Blocked</label>
+                  {%elif AdminBot.bot_id.bot_state == 2 %}
+                  <label class="label label-info">.Running</label>
+                  {%else %}
+                  <label class="label label-warning">Unknown</label>
 
                   {%endif%}
                     </td>
