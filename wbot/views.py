@@ -1,3 +1,5 @@
+
+from django.core.urlresolvers import reverse
 from django.shortcuts import render
 from django.contrib import auth
 from django.http import HttpResponseRedirect, JsonResponse
@@ -6,7 +8,7 @@ from .models import *
 from django.contrib.auth.decorators import login_required, user_passes_test
 from .HelperFunction import *
 from django.contrib.auth import logout
-
+from .forms import *
 
 
 
@@ -127,3 +129,38 @@ def logout_view(request):
 @user_passes_test(hasAdmin)
 def mediafetch(request):
     return HttpResponseRedirect(request.get_full_path())
+
+
+
+
+
+
+
+
+
+
+
+def list(request):
+    # Handle file upload
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            newdoc = Document(docfile=request.FILES['docfile'])
+            newdoc.save()
+            document_obj = Document.objects.filter( id = newdoc.id ).order_by('-pk')
+            # Redirect to the document list after POST
+            return render(request,'upload_csv.html',{'document_id': document_obj, 'form': form})
+
+            # return HttpResponseRedirect(reverse('list'))
+    else:
+        form = DocumentForm()  # A empty, unbound form
+
+    # Load documents for the list page
+    documents = Document.objects.all()
+
+    # Render list page with the documents and the form
+    return render(
+        request,
+        'upload_csv.html',
+        {'documents': documents, 'form': form}
+)

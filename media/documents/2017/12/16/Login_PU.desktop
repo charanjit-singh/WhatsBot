@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Login_PU      
+Exec="/opt/login_Pu.sh"   
+Categories=Internet;Education;
+Terminal=false    
+StartupNotify=true
+
+
+
+
+

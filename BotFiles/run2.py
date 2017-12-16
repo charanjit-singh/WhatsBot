@@ -26,7 +26,7 @@ def startBot(credentials):
     stack.broadcastEvent(credential_Pass)
     stack.loop(timeout=0.5, count=1) # Let the taskloop run one time for 2 seconds. So as to Setup complete
     # Now Send Event to Scan if any Numbers in list remaining Whom to send messages
-    # stack.broadcastEvent(YowLayerEvent('Continue_Sending'))
+    stack.broadcastEvent(YowLayerEvent('Continue_Sending'))
     stack.loop()
     #
     # try:

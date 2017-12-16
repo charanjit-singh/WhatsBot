@@ -103,10 +103,10 @@ class Whatsbot(YowInterfaceLayer):
                         admin_id = str(cur.fetchone()[0])
                         cur.execute('select id from public.wbot_bot where bot_phone = \'%s\'' %str(self.BotPhoneNumber))
                         bot_id = str(cur.fetchone()[0])
+                        
                         cur.execute('Insert Into public.wbot_message(message_text,admin_id,"csvFile","startedOn") values (\'%s\',\'%s\',\'%s\',TIMESTAMP \'%s\') returning id;' %(message_backup,admin_id,self.csvlink,datetime.now()))
                         message_id = str(cur.fetchone()[0])
                         print('Storing Contacts into Data base')
-                        self.LIST_CONTACTS = ('919417290392','917508377911','917508377911')# List of Contacts to whom mwssage has to be sent
                         for phone_number in self.LIST_CONTACTS:
 
                             print(self.LIST_CONTACTS)
@@ -218,7 +218,7 @@ class Whatsbot(YowInterfaceLayer):
         cur.execute('Select admin_id_id from public.wbot_adminbot where bot_id_id in (select id from public.wbot_bot where bot_phone = \'%s\')' %str(self.BotPhoneNumber))
         admin_id = str(cur.fetchone()[0])
         print('Admin Id :' ,admin_id)
-        cur.execute('Select id,message_text from public.wbot_message where admin_id  = \'%s\' and id in(select id from public.wbot_messagestatus where status = \'0\')' %admin_id )
+        cur.execute('Select id,message_text from public.wbot_message where admin_id  = \'%s\' and id in(select message_id_id from public.wbot_messagestatus where status = \'0\')' %admin_id )
         message_id_list = (cur.fetchall())
         # TODO: loop until not every message is sent
         print(message_id_list)
@@ -318,7 +318,44 @@ class Whatsbot(YowInterfaceLayer):
             return
         if getList(link):
             self.csvlink = link
-            self.GOT_CONTACTS = True
+            self.LIST_CONTACTS = []
+            if DB_CONNECTION ==None:
+                getDbConnection()
+            cur = DB_CONNECTION.cursor()
+            cur.execute('select docfile from public.wbot_document where auto_pseudoid = \'%s\';' %url)
+            file_path = cur.fetchone()
+            file_path = '../media/'+file_path
+            import pandas as pd
+            valid = True
+            csv_file = open(file_path)
+            df = pd.read_csv(csv_file)
+            try:
+                saved_column = df['phone']
+            except KeyError:
+                try:
+                    saved_column = df['contacts']
+                except KeyError:
+                    try:
+                        saved_column = df['contact']
+                    except KeyError:
+                        try:
+                            saved_column =df['numbers']
+                        except KeyError:
+                            try:
+                                saved_column = df['number']
+                            except KeyError:
+                                print('Error CSV')
+                                valid = False
+                                self.GOT_CONTACTS = False
+
+            if valid:
+                print(saved_column)
+                for contact in saved_column:
+                    contact = str(contact)
+                    if len(contact)==10:
+                        contact = '91'+contact
+                    self.LIST_CONTACTS.append[contact]
+                self.GOT_CONTACTS = True
         else:
             self.GOT_CONTACTS = False
 
@@ -417,8 +454,8 @@ class Whatsbot(YowInterfaceLayer):
         elif param=='list_not_specified':
             message='❗ *Error:* \nList not specified👎.send *WB help* for help.🛃'
         elif param=='busy':
-            message='❗ *Error:* \nCan you please hold on!.😕 I\'m busy right now.🤕'
         else:
+            message='❗ *Error:* \nCan you please hold on!.😕 I\'m busy right now.🤕'
             message='⁉ *Error:* \nError not found.😰😰'
 
         self.sendMessage(num,message)

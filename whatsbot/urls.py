@@ -28,7 +28,9 @@ urlpatterns = [
     url(r'messages/$',views.messages),
     url(r'messages/(?P<pk>[0-9]+)/',views.messageDetails),
     url(r'logout/',views.logout_view),
-    url(r'media/',views.mediafetch),
+    # url(r'media/',views.mediafetch),
     url(r'accounts/login/',views.login),
+
+    url(r'^upload/$', views.list, name='list'),
 
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
