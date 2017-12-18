@@ -212,7 +212,9 @@ class Whatsbot(YowInterfaceLayer):
             else:
 
                 print('Handle Media Messages')
-                self.onMediaMessage(messageProtocolEntity)
+
+                self.showHelp_S(messageProtocolEntity.getFrom(),messageProtocolEntity.getNotify())
+                #self.onMediaMessage(messageProtocolEntity)
                 #Handle media message
         else:
             if not  messageProtocolEntity.isGroupMessage():
