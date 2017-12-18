@@ -47,6 +47,26 @@ def dashboard(request):
     obj_Admin = get_object_or_404(Admin,authUser = request.user)
     obj_AdminBot = AdminBot.objects.filter( admin_id = obj_Admin ).order_by('-pk')
     dictv['AdminBots']= obj_AdminBot
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        if form.is_valid():
+            newdoc = Document(docfile=request.FILES['docfile'])
+            newdoc.save()
+            document_obj = Document.objects.filter( id = newdoc.id ).order_by('-pk')
+            # Redirect to the document list after POST
+            dictv['document_id'] = document_obj
+            dictv['form'] = form
+
+            return render(request,'dashboard_home.html',dictv)
+            # return HttpResponseRedirect(reverse('list'))
+    else:
+        form = DocumentForm()  # A empty, unbound form
+
+    # Load documents for the list page
+    documents = Document.objects.all()
+    dictv['documents']=documents
+
+    dictv['form'] = form
 
     return render(request,'dashboard_home.html',dictv)
 
@@ -79,7 +99,7 @@ def sendOtp(request):
     countryCode = request.GET.get('cc')
     print('Got Phone number ')
     print(phoneNumber , countryCode )
-    dictv = getcode(phoneNumber,countryCode,'sms')
+    dictv = getcode(phoneNumber,countryCode,'voice')
     print(dictv)
     return JsonResponse(dictv)
 

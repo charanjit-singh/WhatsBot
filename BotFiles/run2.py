@@ -10,6 +10,7 @@ from yowsup.env import YowsupEnv
 from config import Config
 import psycopg2
 import subprocess
+import time
 def startBot(credentials):
     print (credentials)
     credential_Pass = YowLayerEvent('Whatsbot_Phone',phone_num=credentials[0])
@@ -24,9 +25,10 @@ def startBot(credentials):
     stack.setProp(PROP_IDENTITY_AUTOTRUST, True)
     stack.broadcastEvent(YowLayerEvent(YowNetworkLayer.EVENT_STATE_CONNECT))   #sending the connect signal
     stack.broadcastEvent(credential_Pass)
-    stack.loop(timeout=0.5, count=1) # Let the taskloop run one time for 2 seconds. So as to Setup complete
-    # Now Send Event to Scan if any Numbers in list remaining Whom to send messages
-    stack.broadcastEvent(YowLayerEvent('Continue_Sending'))
+    # stack.loop(timeout=0.5, count=2) # Let the taskloop run one time for 2 seconds. So as to Setup complete
+    # # Now Send Event to Scan if any Numbers in list remaining Whom to send messages
+    # time.sleep(0.5)
+    # stack.broadcastEvent(YowLayerEvent('Continue_Sending'))
     stack.loop()
     #
     # try:
@@ -112,7 +114,7 @@ def main():
             break
         except KeyboardInterrupt:
             print('An Unknown Exception has been Encountered . Sending Sms To Developers')
-            break
+            continue
             # send SMS to developers
             # continue
             # Continue the execution

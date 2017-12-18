@@ -28,6 +28,37 @@
                         </div>
                     </div>
                 </div>
+
+                        <!-- List of uploaded documents -->
+                        {% for dc in document_id %}
+                            <ul>
+                              <div class="alert">
+Your CSV's Unique Id is:<strong>
+                              {{dc.auto_pseudoid}}  </strong>
+</div>
+                            </ul>
+                            <!-- <p>No documents.</p>-->
+                        {% endfor %}
+
+                        <!-- Upload form. Note enctype attribute! -->
+                        <form action="{% url "list" %}" method="post" class="form-inline" enctype="multipart/form-data">
+
+                                            <div class="form-group  form-group-lg" >
+                            {% csrf_token %}
+                            <p>{{ form.non_field_errors }}</p>
+
+                            <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>
+
+                            <p>
+                                {{ form.docfile.errors }}
+                                {{ form.docfile }}
+                            </p>
+
+                            <p><input type="submit" value="Upload"/></p>
+
+    </div>
+
+                        </form>
                 <!-- /.box-header -->
                 <div class="box-body table-responsive no-padding">
                   <table id = 'BotStatusTable' class="table table-striped">

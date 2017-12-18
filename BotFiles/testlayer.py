@@ -1,8 +1,12 @@
 __author__ = 'Charanjit'
-
-from datetime import datetime
+import os
+from yowsup.layers.protocol_media.mediadownloader import MediaDownloader
+from yowsup.layers.interface import YowInterfaceLayer, ProtocolEntityCallback
+from yowsup.layers.protocol_messages.protocolentities import TextMessageProtocolEntity
 import psycopg2
 import csv
+from yowsup.layers.protocol_profiles.protocolentities import SetStatusIqProtocolEntity
+from yowsup.layers.protocol_contacts.protocolentities import GetSyncIqProtocolEntity, ResultSyncIqProtocolEntity
 from yowsup.layers.interface import YowInterfaceLayer, ProtocolEntityCallback
 from yowsup.layers.protocol_messages.protocolentities import TextMessageProtocolEntity
 from yowsup.layers.protocol_receipts.protocolentities import OutgoingReceiptProtocolEntity
@@ -13,9 +17,34 @@ from yowsup.layers.protocol_presence.protocolentities.presence_available import 
 from yowsup.layers.protocol_presence.protocolentities import PresenceProtocolEntity
 from yowsup.layers.protocol_presence.protocolentities.presence_unavailable import UnavailablePresenceProtocolEntity
 from yowsup.common.tools import Jid
+import shutil
+from yowsup.layers.protocol_media.mediadownloader import MediaDownloader
 from yowsup.layers.auth import YowCryptLayer, YowAuthenticationProtocolLayer, AuthError
 import random
 import time
+from yowsup.layers.interface import YowInterfaceLayer, ProtocolEntityCallback
+from yowsup.layers.auth import YowAuthenticationProtocolLayer
+from yowsup.layers import YowLayerEvent, EventCallback
+from yowsup.layers.network import YowNetworkLayer
+import sys
+from yowsup.common import YowConstants
+from datetime import datetime
+import os
+import logging
+from yowsup.layers.protocol_groups.protocolentities      import *
+from yowsup.layers.protocol_presence.protocolentities    import *
+from yowsup.layers.protocol_messages.protocolentities    import *
+from yowsup.layers.protocol_ib.protocolentities          import *
+from yowsup.layers.protocol_iq.protocolentities          import *
+from yowsup.layers.protocol_contacts.protocolentities    import *
+from yowsup.layers.protocol_chatstate.protocolentities   import *
+from yowsup.layers.protocol_privacy.protocolentities     import *
+from yowsup.layers.protocol_media.protocolentities       import *
+from yowsup.layers.protocol_media.mediauploader import MediaUploader
+from yowsup.layers.protocol_profiles.protocolentities    import *
+from yowsup.common.tools import Jid
+from yowsup.common.optionalmodules import PILOptionalModule, AxolotlOptionalModule
+
 forwarding=False
 lockXact=False
 list_cont=['919417290392','917508377911']
@@ -44,13 +73,13 @@ class Whatsbot(YowInterfaceLayer):
 
 
     def __init__(self):
-        self.BotPhoneNumber = None
+        self.BotPhoneNumber = '917009213133'
         super(Whatsbot,self).__init__()
         YowInterfaceLayer.__init__(self)
         self.GOT_CONTACTS = False
         self.csvlink = ''
-        self.SYNC_CONTACTS = None #List of contacts which need to be synced
-        self.LIST_CONTACTS = ['919417290392','917508377911','917508377911'], # List of Contacts to whom mwssage has to be sent
+        self.SYNC_CONTACTS = [] #List of contacts which need to be synced
+        self.LIST_CONTACTS = [] # List of Contacts to whom mwssage has to be sent
         print('Layer Running')
         global DB_CONNECTION
         getDbConnection()
@@ -103,8 +132,10 @@ class Whatsbot(YowInterfaceLayer):
                         admin_id = str(cur.fetchone()[0])
                         cur.execute('select id from public.wbot_bot where bot_phone = \'%s\'' %str(self.BotPhoneNumber))
                         bot_id = str(cur.fetchone()[0])
-                        
-                        cur.execute('Insert Into public.wbot_message(message_text,admin_id,"csvFile","startedOn") values (\'%s\',\'%s\',\'%s\',TIMESTAMP \'%s\') returning id;' %(message_backup,admin_id,self.csvlink,datetime.now()))
+                        cur.execute('select docfile from public.wbot_document where auto_pseudoid = \'%s\';' %self.csvlink)
+                        file_path = cur.fetchone()[0]
+                        file_path = '/media/'+file_path
+                        cur.execute('Insert Into public.wbot_message(message_text,admin_id,"csvFile","startedOn") values (\'%s\',\'%s\',\'%s\',TIMESTAMP \'%s\') returning id;' %(message_backup,admin_id,file_path,datetime.now()))
                         message_id = str(cur.fetchone()[0])
                         print('Storing Contacts into Data base')
                         for phone_number in self.LIST_CONTACTS:
@@ -170,13 +201,18 @@ class Whatsbot(YowInterfaceLayer):
                         self.showoffers(messageProtocolEntity.getFrom())
                     elif command=='status':
                         print("Show STATE")
-                        #self.sendStats(messageProtocolEntity.getFrom())
 
+                        self.profile_setStatus()
+                        self.profile_setPicture('/home/charanjit/project_whatsbot/BotFiles/wa.jpg')
+                        #self.sendStats(messageProtocolEntity.getFrom())
+                    elif command == 'image':
+                        self.image_send(messageProtocolEntity.getFrom(),'/home/charanjit/project_whatsbot/BotFiles/wa.jpg')
                 else:
                     self.sendError(messageProtocolEntity.getFrom(),'incorrect_command')
             else:
 
                 print('Handle Media Messages')
+                self.onMediaMessage(messageProtocolEntity)
                 #Handle media message
         else:
             if not  messageProtocolEntity.isGroupMessage():
@@ -194,20 +230,126 @@ class Whatsbot(YowInterfaceLayer):
     def onReceipt(self, entity):
         type_reciept= entity.getType()
         if(type_reciept=='read'):
-            print(entity.getFrom()+' Read the messages ')
+            if DB_CONNECTION ==None:
+                getDbConnection()
+            cur  = DB_CONNECTION.cursor()
+            cur.execute('update public.wbot_messagestatus set status  = \'2\' where phon_num = \'%s\''%entity.getFrom()[0:12])
+            print(entity.getFrom()[0:12]+' Read the messages ')
+            DB_CONNECTION.commit()
 
-
+            # def onReceipt(self, entity):
         self.toLower(entity.ack())
 
-    @ProtocolEntityCallback("ack")
-    def onAck(self, entity):
-        #formattedDate = datetime.datetime.fromtimestamp(self.sentCache[entity.getId()][0]).strftime('%d-%m-%Y %H:%M')
-        #print("%s [%s]:%s"%(self.username, formattedDate, self.sentCache[entity.getId()][1]))
-        if entity.getClass() == "message":
-            print('Sent to ',entity.getId())
-            #self.notifyInputThread()
+
+        # self.toLower(entity.ack())
+
+
+
+    @ProtocolEntityCallback("success")
+    def onSuccess(self, successProtocolEntity):
+        print('Connection Success With Whatsapp Server')
+        self.online()
+        self.make_presence()
+        self.spamMessages()
+
+
+
+
+    def onMediaMessage(self, messageProtocolEntity):
+         if messageProtocolEntity.getMediaType() == "image":
+            self.tmpto = messageProtocolEntity.getFrom()
+            data = messageProtocolEntity.getMediaContent()
+            outPath = os.path.join("mm.jpg" )
+            print(outPath)
+            f = open(outPath, 'wb')
+            f.write(data)
+            f.close()
+            self.onsuccess(outPath)
+
+    def onError(self):
+        self.toLower(TextMessageProtocolEntity("Foto konnte nicht gespeichert werden", to = self.tmpto))
+
+    def onsuccess(self, path):
+        self.toLower(TextMessageProtocolEntity("Foto gespeichert (%s)" % (os.path.basename(path)), to = self.tmpto))
+
+    def onProgress(self, progress):
+        pass
+
+    def doSendMedia(self, mediaType, filePath, url, to, ip = None, caption = None):
+        if mediaType == RequestUploadIqProtocolEntity.MEDIA_TYPE_IMAGE:
+        	entity = ImageDownloadableMediaMessageProtocolEntity.fromFilePath(filePath, url, ip, to, caption = caption)
+        elif mediaType == RequestUploadIqProtocolEntity.MEDIA_TYPE_AUDIO:
+        	entity = AudioDownloadableMediaMessageProtocolEntity.fromFilePath(filePath, url, ip, to)
+        elif mediaType == RequestUploadIqProtocolEntity.MEDIA_TYPE_VIDEO:
+        	entity = VideoDownloadableMediaMessageProtocolEntity.fromFilePath(filePath, url, ip, to, caption = caption)
+        self.toLower(entity)
+
+    # @clicmd("Send a video with optional caption")
+    def video_send(self, number, path, caption = None):
+        self.media_send(number, path, RequestUploadIqProtocolEntity.MEDIA_TYPE_VIDEO)
+
+    # @clicmd("Send an image with optional caption")
+    def image_send(self, number, path, caption = None):
+        self.media_send(number, path, RequestUploadIqProtocolEntity.MEDIA_TYPE_IMAGE)
+
+    # @clicmd("Send audio file")
+    def audio_send(self, number, path):
+        self.media_send(number, path, RequestUploadIqProtocolEntity.MEDIA_TYPE_AUDIO)
+
+    def media_send(self, number, path, mediaType, caption = None):
+        if True:
+            jid = (number)
+            entity = RequestUploadIqProtocolEntity(mediaType, filePath=path)
+            successFn = lambda successEntity, originalEntity: self.onRequestUploadResult(jid, mediaType, path, successEntity, originalEntity, caption)
+            errorFn = lambda errorEntity, originalEntity: self.onRequestUploadError(jid, path, errorEntity, originalEntity)
+            self._sendIq(entity, successFn, errorFn)
+
+            self._sendIq(entity, successFn, errorFn)
+    ## Callbacks
+    def onRequestUploadResult(self, jid, mediaType, filePath, resultRequestUploadIqProtocolEntity, requestUploadIqProtocolEntity, caption = None):
+        if resultRequestUploadIqProtocolEntity.isDuplicate():
+            self.doSendMedia(mediaType, filePath, resultRequestUploadIqProtocolEntity.getUrl(), jid,
+                             resultRequestUploadIqProtocolEntity.getIp(), caption)
+        else:
+            successFn = lambda filePath, jid, url: self.doSendMedia(mediaType, filePath, url, jid, resultRequestUploadIqProtocolEntity.getIp(), caption)
+            mediaUploader = MediaUploader(jid, self.getOwnJid(), filePath,
+                                      resultRequestUploadIqProtocolEntity.getUrl(),
+                                      resultRequestUploadIqProtocolEntity.getResumeOffset(),
+                                      successFn, self.onUploadError, self.onUploadProgress, async=False)
+            mediaUploader.start()
+    def onRequestUploadError(self, jid, path, errorRequestUploadIqProtocolEntity, requestUploadIqProtocolEntity):
+        print("Request upload for file %s for %s failed" % (path, jid))
+
+    def onUploadError(self, filePath, jid, url):
+        print("Upload file %s to %s for %s failed!" % (filePath, url, jid))
+
+    def onUploadProgress(self, filePath, jid, url, progress):
+        sys.stdout.write("%s => %s, %d%% \r" % (os.path.basename(filePath), jid, progress))
+        sys.stdout.flush()
+
+
+
+    def profile_setPicture(self, path):
+        if True:
+            with PILOptionalModule(failMessage = "No PIL library installed, try install pillow") as imp:
+                Image = imp("Image")
+                def onSuccess(resultIqEntity, originalIqEntity):
+                    print("Profile picture updated successfully")
+
+                def onError(errorIqEntity, originalIqEntity):
+                    lprint("Error updating profile picture")
+
+                #example by @aesedepece in https://github.com/tgalal/yowsup/pull/781
+                #modified to supportsrc python3
+                src = Image.open(path)
+                pictureData = src.resize((640, 640)).tobytes("jpeg", "RGB")
+                picturePreview = src.resize((96, 96)).tobytes("jpeg", "RGB")
+                iq = SetPictureIqProtocolEntity(self.getOwnJid(), picturePreview, pictureData)
+                self._sendIq(iq, onSuccess, onError)
+
 
     def spamMessages(self):
+        print('Spamming Messages')
         if DB_CONNECTION == None:
             getDbConnection()
             print('Got Database Connection')
@@ -248,6 +390,18 @@ class Whatsbot(YowInterfaceLayer):
             #        entity = GetSyncIqProtocolEntity(contacts)
             #        print (syncing)
             #         self.toLower(entity)
+            # print(phone_nums)
+
+            for phone_number in phone_nums:
+
+                phone_number = phone_number[0]
+                ph_num = phone_number
+                self.LIST_CONTACTS.append(ph_num)
+
+            self.OptimiseList()
+
+            syncEntity = GetSyncIqProtocolEntity(self.LIST_CONTACTS)
+            self.toLower(syncEntity)
             for phone_number in phone_nums:
                 try:
                     phone_number = phone_number[0]
@@ -255,7 +409,7 @@ class Whatsbot(YowInterfaceLayer):
                     ph_num = phone_number
                     phone_number = phone_number+'@s.whatsapp.net'
                     self.sendMessage(phone_number,message_text)
-                    print('update public.wbot_messagestatus set status = \'1\' where phon_num = \'%s\' and message_id_id = \'%s\'' %(ph_num, message_id))
+                    # print('update public.wbot_messagestatus set status = \'1\' where phon_num = \'%s\' and message_id_id = \'%s\'' %(ph_num, message_id))
                     cur.execute('update public.wbot_messagestatus set status = \'1\' where phon_num = \'%s\' and message_id_id = \'%s\'' %(ph_num, message_id))
                     DB_CONNECTION.commit()
                 except AuthError:
@@ -296,18 +450,18 @@ class Whatsbot(YowInterfaceLayer):
         # num=num+'@s.whatsapp.net'
         num =self.normalise(num)
         self.start_typing(num)
-        time.sleep(random.uniform(0.5,2.0))
+        time.sleep(random.uniform(0.1,0.3))
         entity= TextMessageProtocolEntity(
             message,
             to=num)
         self.toLower(entity)
-        print('Message: ',message,' To: ',num)
+        # print('Message: ',message,' To: ',num)
         self.stop_typing(num)
-        time.sleep(random.uniform(0.3,1.0))
+        time.sleep(random.uniform(0.1,0.3))
         self.start_typing(num)
-        time.sleep(random.uniform(0.5,0.6))
+        time.sleep(0.1)
         self.stop_typing(num)
-        time.sleep(random.uniform(0.5,1.0))
+        # time.sleep(random.uniform(0.5,1.0))
 
 
 
@@ -322,9 +476,13 @@ class Whatsbot(YowInterfaceLayer):
             if DB_CONNECTION ==None:
                 getDbConnection()
             cur = DB_CONNECTION.cursor()
-            cur.execute('select docfile from public.wbot_document where auto_pseudoid = \'%s\';' %url)
-            file_path = cur.fetchone()
-            file_path = '../media/'+file_path
+            cur.execute('select docfile from public.wbot_document where auto_pseudoid = \'%s\';' %link)
+            try:
+                file_path = cur.fetchone()[0]
+                file_path = '../media/'+file_path
+            except:
+                self.sendError(messageProtocolEntity.getFrom(),'incorrect_command')
+                return
             import pandas as pd
             valid = True
             csv_file = open(file_path)
@@ -352,9 +510,15 @@ class Whatsbot(YowInterfaceLayer):
                 print(saved_column)
                 for contact in saved_column:
                     contact = str(contact)
+                    contact.replace('-','')
+                    contact.replace('+','')
                     if len(contact)==10:
                         contact = '91'+contact
-                    self.LIST_CONTACTS.append[contact]
+                    elif len(contact) > 10:
+                        contact = contact[-10:]
+                        contact = '91'+ contact
+
+                    self.LIST_CONTACTS.append(contact)
                 self.GOT_CONTACTS = True
         else:
             self.GOT_CONTACTS = False
@@ -454,8 +618,9 @@ class Whatsbot(YowInterfaceLayer):
         elif param=='list_not_specified':
             message='❗ *Error:* \nList not specified👎.send *WB help* for help.🛃'
         elif param=='busy':
-        else:
+
             message='❗ *Error:* \nCan you please hold on!.😕 I\'m busy right now.🤕'
+        else:
             message='⁉ *Error:* \nError not found.😰😰'
 
         self.sendMessage(num,message)
@@ -487,17 +652,19 @@ class Whatsbot(YowInterfaceLayer):
         self.sendMessage(num,message)
     def showHelp_S(self,num,name):
         #message="*Hello "+name+" .*\nI'm WhatsBot.🤖\nI was born on 10 Dec,2017😀.\nMy Father is Charanjit Singh.👪\nI have capability🤓 to:\n👉🏻Send bulk messages🗯 to single contact.\n👉🏻Send messages to a list of contacts.\n👉🏻Show current Status.My Dad told me that I'll be supporting Web interface and Group sending support soon😁. I'm so excited 😁😁.Can't Wait for it.😍😄"
-        message="Thanks for messaging *AAABrightAcademy.* \nYou can visit our website aaabrightacademy.in for knowing about the various coaching courses we offer at our different centers in North India and you may also call us at: +91-98724-74753 for any details!\n\nBest Regards,\nTeam AAABrightAcademy,"
+        # message="Thanks for messaging *AAABrightAcademy.* \nYou can visit our website aaabrightacademy.in for knowing about the various coaching courses we offer at our different centers in North India and you may also call us at: +91-98724-74753 for any details!\n\nBest Regards,\nTeam AAABrightAcademy,"
          #   num.find('@g.us')
         #    print('Was Group Message'
         #except  ValueError:
+        message = 'Thank you '+ name + ' for messaging us.'
         self.sendMessage(num,message)
 
 
     def getcontext():
         return self
 
-    def profile_setStatus(self, text):
+    def profile_setStatus(self):
+        text = 'Hey there! I am WhatsBot .'
         def onSuccess(resultIqEntity, originalIqEntity):
             print("Status updated successfully")
 
@@ -506,6 +673,19 @@ class Whatsbot(YowInterfaceLayer):
 
         entity = SetStatusIqProtocolEntity(text)
         self._sendIq(entity, onSuccess, onError)
+
+
+
+
+
+    def OptimiseList(self):
+        tempList = []
+        for tpl in self.LIST_CONTACTS:
+
+            tempList.append(str(tpl))
+
+        self.LIST_CONTACTS = tempList
+        print('Optimised List: ',self.LIST_CONTACTS)
 
 
 

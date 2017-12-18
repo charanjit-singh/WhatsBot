@@ -22,7 +22,7 @@ from wbot import views
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url('^$',views.login),
-    url(r'^dashboard/$',views.dashboard),
+    url(r'^dashboard/',views.dashboard,name='list'),
     url(r'^registerBot/$',views.registerbot),
     url(r'sendotp/',views.sendOtp),
     url(r'messages/$',views.messages),
@@ -30,7 +30,5 @@ urlpatterns = [
     url(r'logout/',views.logout_view),
     # url(r'media/',views.mediafetch),
     url(r'accounts/login/',views.login),
-
-    url(r'^upload/$', views.list, name='list'),
 
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
