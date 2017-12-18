@@ -112,7 +112,7 @@ def main():
         except KeyboardInterrupt:
             print('Exited')
             break
-        except KeyboardInterrupt:
+        except :
             print('An Unknown Exception has been Encountered . Sending Sms To Developers')
             continue
             # send SMS to developers
