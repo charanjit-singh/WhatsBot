@@ -75,21 +75,13 @@ def main():
                     # got admin phone number
                     print (row)
                     try:
-                        set_working_sql = """
-                        UPDATE  public.wbot_bot
-                        SET bot_state = 2
-                        WHERE id = %s
-                        """
-                        cur.execute(set_working_sql,BotId)
+                        set_working_sql = " UPDATE  public.wbot_bot SET bot_state = 2 WHERE id = \'"+BotId+"\'"
+                        cur.execute(set_working_sql)
                         conn.commit()
                         startBot(BotCredentials)
                     except AuthError:
                         # set bot number blocked
-                        update_sql = """
-                        UPDATE  public.wbot_bot
-                        SET bot_state = 1
-                        WHERE id = %s
-                        """
+                        update_sql = " UPDATE  public.wbot_bot SET bot_state = 1  WHERE id = \'"+BotId+"\'"
                         cur.execute(update_sql,BotId)
                         conn.commit()
                         # send sms to  admin phone number
@@ -112,9 +104,9 @@ def main():
         except KeyboardInterrupt:
             print('Exited')
             break
-        except :
-            print('An Unknown Exception has been Encountered . Sending Sms To Developers')
-            continue
+        # except :
+        #     print('An Unknown Exception has been Encountered . Sending Sms To Developers')
+        #     break
             # send SMS to developers
             # continue
             # Continue the execution

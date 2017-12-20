@@ -413,24 +413,26 @@ class Whatsbot(YowInterfaceLayer):
             syncEntity = GetSyncIqProtocolEntity(self.LIST_CONTACTS)
             self.toLower(syncEntity)
 
-            self.lock.acquire()
-            print('Lock acquired on Thread')
             for phone_number in phone_nums:
                 try:
                     phone_number = phone_number[0]
                     print('Phone number: ',phone_number)
                     ph_num = phone_number
                     phone_number = phone_number+'@s.whatsapp.net'
+
+                    self.lock.acquire()
                     self.sendMessage(phone_number,message_text)
+
                     # print('update public.wbot_messagestatus set status = \'1\' where phon_num = \'%s\' and message_id_id = \'%s\'' %(ph_num, message_id))
                     cur.execute('update public.wbot_messagestatus set status = \'1\' where phon_num = \'%s\' and message_id_id = \'%s\'' %(ph_num, message_id))
                     DB_CONNECTION.commit()
+
+                    self.lock.release()
                 except AuthError:
                     cur.close()
                     DB_CONNECTION.close()
                     raise AuthError()
                 i = i+1
-            self.lock.release()
 
         cur.close()
 
