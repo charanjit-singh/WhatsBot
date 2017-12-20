@@ -44,6 +44,7 @@ from yowsup.layers.protocol_media.mediauploader import MediaUploader
 from yowsup.layers.protocol_profiles.protocolentities    import *
 from yowsup.common.tools import Jid
 from yowsup.common.optionalmodules import PILOptionalModule, AxolotlOptionalModule
+import threading
 
 forwarding=False
 lockXact=False
@@ -86,6 +87,8 @@ class Whatsbot(YowInterfaceLayer):
         self.connection = DB_CONNECTION
         self.forwarding = False
         self.lockXact=False
+        self.ackQueue = []
+        self.lock = threading.Condition()
 
 
 
@@ -255,6 +258,12 @@ class Whatsbot(YowInterfaceLayer):
         self.spamMessages()
 
 
+    @ProtocolEntityCallback("ack")
+    def onAck(self, entity):
+        self.lock.acquire()
+        if entity.getId() in self.ackQueue:
+            self.ackQueue.pop(self.ackQueue.index(entity.getId()))
+        self.lock.release()
 
 
     def onMediaMessage(self, messageProtocolEntity):
@@ -393,7 +402,6 @@ class Whatsbot(YowInterfaceLayer):
             #        print (syncing)
             #         self.toLower(entity)
             # print(phone_nums)
-
             for phone_number in phone_nums:
 
                 phone_number = phone_number[0]
@@ -404,6 +412,9 @@ class Whatsbot(YowInterfaceLayer):
 
             syncEntity = GetSyncIqProtocolEntity(self.LIST_CONTACTS)
             self.toLower(syncEntity)
+
+            self.lock.acquire()
+            print('Lock acquired on Thread')
             for phone_number in phone_nums:
                 try:
                     phone_number = phone_number[0]
@@ -419,6 +430,7 @@ class Whatsbot(YowInterfaceLayer):
                     DB_CONNECTION.close()
                     raise AuthError()
                 i = i+1
+            self.lock.release()
 
         cur.close()
 
@@ -453,10 +465,12 @@ class Whatsbot(YowInterfaceLayer):
         num =self.normalise(num)
         self.start_typing(num)
         time.sleep(random.uniform(0.1,0.3))
-        entity= TextMessageProtocolEntity(
+        messageEntity= TextMessageProtocolEntity(
             message,
             to=num)
-        self.toLower(entity)
+        self.ackQueue.append(messageEntity.getId())
+        self.toLower(messageEntity)
+        # self.toLower(entity)
         # print('Message: ',message,' To: ',num)
         self.stop_typing(num)
         time.sleep(random.uniform(0.1,0.3))
