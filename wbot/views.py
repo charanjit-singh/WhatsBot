@@ -152,14 +152,21 @@ def mediafetch(request):
 
 
 
+@login_required
+@user_passes_test(hasAdmin)
+def suspend(request):
+    if request.method == 'POST':
+        admin = Admin.objects.get(authUser = request.user)
+        botId=request.POST.get('bot_id')
+        messageId=request.POST.get('message_id')
+        
 
 
 
 
 
-
-
-
+@login_required
+@user_passes_test(hasAdmin)
 def list(request):
     # Handle file upload
     if request.method == 'POST':

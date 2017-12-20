@@ -1,4 +1,5 @@
 __author__ = 'Charanjit'
+
 import os
 from yowsup.layers.protocol_media.mediadownloader import MediaDownloader
 from yowsup.layers.interface import YowInterfaceLayer, ProtocolEntityCallback
@@ -74,7 +75,8 @@ class Whatsbot(YowInterfaceLayer):
 
 
     def __init__(self):
-        self.BotPhoneNumber = '917009213133'
+        self.isOnline=False
+        self.BotPhoneNumber = '917009213133'  # TODO: BotPhoneNumber=The Running Bot's Number
         super(Whatsbot,self).__init__()
         YowInterfaceLayer.__init__(self)
         self.GOT_CONTACTS = False
@@ -89,22 +91,16 @@ class Whatsbot(YowInterfaceLayer):
         self.lockXact=False
         self.ackQueue = []
         self.lock = threading.Condition()
+        self.phone_num_last = '919417290392'
 
-
-
-
-
-
-
-    @ProtocolEntityCallback("notification")
-    def onNotification(self, notification):
-        print('New Notification')
-        self.toLower(notification.ack())
+        self.RanOnce=False                      # for Spamming Message
+        self.bot_id=''
+        self.message_id=''
 
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
-        global got_list
         self.online()
+        self.phone_num_last = messageProtocolEntity.getFrom()
         self.make_presence()
         time.sleep(random.uniform(0.5,1.0))
         self.toLower(messageProtocolEntity.ack(True))    # // Sending Double tick
@@ -114,13 +110,9 @@ class Whatsbot(YowInterfaceLayer):
         self.toLower(receipt)
         time.sleep(random.uniform(0.5,1.0))
         self.start_typing(messageProtocolEntity.getFrom())
-        #time.sleep(10)
-        # global lockXact
-        # global forwarding
         time.sleep(random.uniform(0.5,1.0))
         self.stop_typing(messageProtocolEntity.getFrom())
         print(messageProtocolEntity.getType()+" Message from "+messageProtocolEntity.getFrom())
-        # self.sendMessage(messageProtocolEntity.getFrom(),str(self.BotPhoneNumber))
         if(self.senderIsAdmin(messageProtocolEntity.getFrom())):
             print("Admin Sent a message")
             if messageProtocolEntity.getType()=='text':
@@ -135,14 +127,15 @@ class Whatsbot(YowInterfaceLayer):
                         admin_id = str(cur.fetchone()[0])
                         cur.execute('select id from public.wbot_bot where bot_phone = \'%s\'' %str(self.BotPhoneNumber))
                         bot_id = str(cur.fetchone()[0])
+                        self.bot_id=bot_id
                         cur.execute('select docfile from public.wbot_document where auto_pseudoid = \'%s\';' %self.csvlink)
                         file_path = cur.fetchone()[0]
                         file_path = '/media/'+file_path
-                        cur.execute('Insert Into public.wbot_message(message_text,admin_id,"csvFile","startedOn") values (\'%s\',\'%s\',\'%s\',TIMESTAMP \'%s\') returning id;' %(message_backup,admin_id,file_path,datetime.now()))
+                        cur.execute("Insert Into public.wbot_message(message_text,admin_id,\"csvFile\",\"startedOn\") values (\'%s\',\'%s\',\'%s\',TIMESTAMP \'%s\') returning id;"%(message_backup.replace('\'','`'),admin_id,file_path,datetime.now()))
                         message_id = str(cur.fetchone()[0])
+                        self.message_id=message_id
                         print('Storing Contacts into Data base')
                         for phone_number in self.LIST_CONTACTS:
-
                             print(self.LIST_CONTACTS)
                             ph_no = phone_number
                             # phone_number = validate(phone_number[0])
@@ -151,22 +144,6 @@ class Whatsbot(YowInterfaceLayer):
                             print('Written ',phone_number,' on Database')
                         DB_CONNECTION.commit()
                         cur.close()
-
-                        # # global list_cont
-                        # print("Started Sending")
-                        # message_to_send = messageProtocolEntity.getBody()
-                        # # backup message_to_send content to Database
-                        # for num in list_cont:
-                        #     if len(num)<12:
-                        #         num='91'+num
-                        #         if len(num)<12:
-                        #             continue
-                        #     if len(num)>12:
-                        #         num=num[-12:]
-                        #     self.forwardMessage(messageProtocolEntity,num)
-                        #    print("Message Sent to "+num)
-                        # put n database the message sent
-                        # self.lockXact=False
                         print("lockXact Released on sending")
                         self.spamMessages()
 
@@ -210,6 +187,13 @@ class Whatsbot(YowInterfaceLayer):
                         #self.sendStats(messageProtocolEntity.getFrom())
                     elif command == 'image':
                         self.image_send(messageProtocolEntity.getFrom(),'wa.jpg')
+                    elif command == 'suspend':
+                        if DB_CONNECTION == None:
+                            getDbConnection()
+                        cur = DB_CONNECTION.cursor()
+                        cur.execute('Update public.wbot_messagestatus set status = \'3\' where status = \'0\'and bot_id_id= \'%s\' and message_id_id= \'%s\';'%(self.bot_id,self.message_id))
+                        DB_CONNECTION.commit()
+                        self.sendError(messageProtocolEntity.getFrom(),'suspended')
                 else:
                     self.sendError(messageProtocolEntity.getFrom(),'incorrect_command')
             else:
@@ -229,7 +213,12 @@ class Whatsbot(YowInterfaceLayer):
 #show help to strangers
 
 
+################################################################################################################################
 
+    @ProtocolEntityCallback("notification")
+    def onNotification(self, notification):
+        print('New Notification')
+        self.toLower(notification.ack())
 
     @ProtocolEntityCallback("receipt")
     def onReceipt(self, entity):
@@ -241,30 +230,32 @@ class Whatsbot(YowInterfaceLayer):
             cur.execute('update public.wbot_messagestatus set status  = \'2\' where phon_num = \'%s\''%entity.getFrom()[0:12])
             print(entity.getFrom()[0:12]+' Read the messages ')
             DB_CONNECTION.commit()
-
-            # def onReceipt(self, entity):
         self.toLower(entity.ack())
-
-
-        # self.toLower(entity.ack())
 
 
 
     @ProtocolEntityCallback("success")
     def onSuccess(self, successProtocolEntity):
         print('Connection Success With Whatsapp Server')
-        self.online()
-        self.make_presence()
+        if not self.isOnline:
+            self.online()
+            self.make_presence()
+            time.sleep(0.5)
         self.spamMessages()
 
 
     @ProtocolEntityCallback("ack")
     def onAck(self, entity):
+        print('Ack: ',entity)
         self.lock.acquire()
         if entity.getId() in self.ackQueue:
             self.ackQueue.pop(self.ackQueue.index(entity.getId()))
+        if not len(self.ackQueue):
+            print("=======================Empty Queue=================")
+            self.spamMessages()
         self.lock.release()
 
+################################################################################################################################
 
     def onMediaMessage(self, messageProtocolEntity):
          if messageProtocolEntity.getMediaType() == "image":
@@ -338,8 +329,6 @@ class Whatsbot(YowInterfaceLayer):
         sys.stdout.write("%s => %s, %d%% \r" % (os.path.basename(filePath), jid, progress))
         sys.stdout.flush()
 
-
-
     def profile_setPicture(self, path):
         if True:
             with PILOptionalModule(failMessage = "No PIL library installed, try install pillow") as imp:
@@ -358,6 +347,7 @@ class Whatsbot(YowInterfaceLayer):
                 iq = SetPictureIqProtocolEntity(self.getOwnJid(), picturePreview, pictureData)
                 self._sendIq(iq, onSuccess, onError)
 
+################################################################################################################################
 
     def spamMessages(self):
         print('Spamming Messages')
@@ -366,16 +356,18 @@ class Whatsbot(YowInterfaceLayer):
             print('Got Database Connection')
         print(DB_CONNECTION)
         cur = DB_CONNECTION.cursor()
-        # while True:
-
         cur.execute('Select admin_id_id from public.wbot_adminbot where bot_id_id in (select id from public.wbot_bot where bot_phone = \'%s\')' %str(self.BotPhoneNumber))
         admin_id = str(cur.fetchone()[0])
         print('Admin Id :' ,admin_id)
-        cur.execute('Select id,message_text from public.wbot_message where admin_id  = \'%s\' and id in(select message_id_id from public.wbot_messagestatus where status = \'0\')' %admin_id )
+        cur.execute('Select id,message_text from public.wbot_message where admin_id  = \'%s\' and id in(select message_id_id from public.wbot_messagestatus where status = \'0\' )' %admin_id )
         message_id_list = (cur.fetchall())
-        # TODO: loop until not every message is sent
+
         print(message_id_list)
-        i=0
+        print(len(message_id_list))
+        if not len(message_id_list):
+            print('returning from Spamming')
+            return
+
         for message_ids in message_id_list:
             print(message_ids)
             message_id= str(message_ids[0])
@@ -385,33 +377,24 @@ class Whatsbot(YowInterfaceLayer):
             cur.execute('select id from public.wbot_bot where bot_phone = \'%s\' and bot_state =\'2\'' %self.BotPhoneNumber )
             bot_id = str(cur.fetchone()[0])
             print('Bot Id: ',bot_id)
-            cur.execute('select phon_num from public.wbot_messagestatus where message_id_id = \'%s\' and  status = \'0\' '%message_id )
+            if not self.RanOnce:
+                self.RanOnce=True
+                cur.execute('select phon_num from public.wbot_messagestatus where message_id_id = \'%s\' and  status = \'0\' '%message_id )
+                phone_nums = cur.fetchall()
+                print('Phone number List: ',phone_nums)
+
+                # SYNC_CONTACTS
+                if not self.GOT_CONTACTS:
+                    for phone_number in phone_nums:
+                        phone_number = phone_number[0]
+                        ph_num = phone_number
+                        self.LIST_CONTACTS.append(ph_num)
+                self.OptimiseList()
+                syncEntity = GetSyncIqProtocolEntity(self.LIST_CONTACTS)
+                self.toLower(syncEntity)
+
+            cur.execute('select phon_num from public.wbot_messagestatus where message_id_id = \'%s\' and  status = \'0\' limit \'40\' '%message_id )
             phone_nums = cur.fetchall()
-            print('Phone number List: ',phone_nums)
-            #TODO:Sync Contacts Here
-            #   Get Already contacts synced List
-            #   Get New Contact LIST
-            #   if all(New Contact List ) in Already Contact Synced list:
-            #       then do nothing
-            #   else
-            #       get those contacts that are not in Already Synced List but in New contact list
-            #       append them to Already  Synced List
-            #       contacts_sync(Already contact list)
-            #     def contacts_sync(self, contacts):
-            #        entity = GetSyncIqProtocolEntity(contacts)
-            #        print (syncing)
-            #         self.toLower(entity)
-            # print(phone_nums)
-            for phone_number in phone_nums:
-
-                phone_number = phone_number[0]
-                ph_num = phone_number
-                self.LIST_CONTACTS.append(ph_num)
-
-            self.OptimiseList()
-
-            syncEntity = GetSyncIqProtocolEntity(self.LIST_CONTACTS)
-            self.toLower(syncEntity)
 
             for phone_number in phone_nums:
                 try:
@@ -433,11 +416,9 @@ class Whatsbot(YowInterfaceLayer):
                     cur.close()
                     DB_CONNECTION.close()
                     raise AuthError()
-                i = i+1
-
         cur.close()
-
-
+        print('-----------------------------------------------------------------------------------------------------------------------------')
+        time.sleep(1)
 
 
     def forwardMessage(self,outgoingMessageProtocolEntity,num):
@@ -453,6 +434,7 @@ class Whatsbot(YowInterfaceLayer):
         self.stop_typing(num)
         time.sleep(random.uniform(0.6,0.9))
         #self.disconnect()
+
     def fetchlink(self,message):
         try:
             _url=message.split(' ')
@@ -473,20 +455,15 @@ class Whatsbot(YowInterfaceLayer):
             to=num)
         self.ackQueue.append(messageEntity.getId())
         self.toLower(messageEntity)
-        # self.toLower(entity)
         # print('Message: ',message,' To: ',num)
         self.stop_typing(num)
         time.sleep(random.uniform(0.1,0.3))
         self.start_typing(num)
         time.sleep(0.1)
         self.stop_typing(num)
-        while True:
-            if messageEntity.getId() not in self.ackQueue:
-                break
-        # time.sleep(random.uniform(0.5,1.0))
 
 
-
+################################################################################################################################
 
     def setlist(self,link):
         if link=='error':
@@ -503,7 +480,7 @@ class Whatsbot(YowInterfaceLayer):
                 file_path = cur.fetchone()[0]
                 file_path = '../media/'+file_path
             except:
-                self.sendError(messageProtocolEntity.getFrom(),'incorrect_command')
+                self.sendError(self.phone_num_last,'incorrect_file')
                 return
             import pandas as pd
             valid = True
@@ -545,77 +522,14 @@ class Whatsbot(YowInterfaceLayer):
         else:
             self.GOT_CONTACTS = False
 
-        #
-        # global list_cont
-        # global downloading
-        # if downloading==0:
-        #     try:
-        #         self.download_file(link)
-        #
-        #
-        #         csv_file = open('contacts.csv') # path of the csv file
-        #         reader = csv.reader(csv_file)
-        #
-        #         for line in reader:
-        #             list_of_headers = [header for header in line]
-        #             phone_index = list_of_headers.index('phone')
-        #             break
-        #
-        #         list_cont = [line[phone_index] for line in reader]
-        #         print(list_cont)
-        #         got_list=True
-        #     except:
-        #         got_list=False
-        #         #Failure
-
-
-
-        # else:
-        #     print ("Already Downloading")
-
-
-    def download_file(self,initialurl):
-
-        import requests
-        global downloading
-        downloading=0
-        from html.parser import HTMLParser
-        result = requests.get(initialurl)
-        if result.status_code==200:
-            c = result.content
-            from bs4 import BeautifulSoup
-            soup = BeautifulSoup(c, 'html.parser')
-            link = soup.find_all("a", "btn btn-default hvr-shrink downloadButton")
-            link=str(link)
-            links=link.find('href')
-            print(links)
-            print(link.find('/">'))
-            mm=link.split('=')
-            mm=str(mm[2])
-            mm=mm.split('"')
-            url='https://nofile.io'+mm[1]
-            import shutil
-            response = requests.get(url, stream=True)
-            if response.status_code==200:
-                downloading=1
-                with open('contacts.csv', 'wb') as out_file:
-                    shutil.copyfileobj(response.raw, out_file)
-                del response
-                downloading=0
-            else:
-                print('Error in url')
-        else:
-            print('Error in url')
-
-
-
+################################################################################################################################
 
     def make_presence(self):
         self.toLower(PresenceProtocolEntity(name="WhatsBot"))
 
-
     def online(self):
         self.toLower(AvailablePresenceProtocolEntity())
+        self.isOnline=True
 
     def disconnect(self):
         self.toLower(UnavailablePresenceProtocolEntity())
@@ -625,12 +539,13 @@ class Whatsbot(YowInterfaceLayer):
             OutgoingChatstateProtocolEntity.STATE_TYPING,
             from_
         ))
+
     def stop_typing(self,num):
         self.toLower(OutgoingChatstateProtocolEntity(
             OutgoingChatstateProtocolEntity.STATE_PAUSED,
             num
         ))
-
+################################################################################################################################
     def sendError(self,num,param):
         message=''
         if param=='already_stopped':
@@ -640,12 +555,13 @@ class Whatsbot(YowInterfaceLayer):
         elif param=='list_not_specified':
             message='❗ *Error:* \nList not specified👎.send *WB help* for help.🛃'
         elif param=='busy':
-
             message='❗ *Error:* \nCan you please hold on!.😕 I\'m busy right now.🤕'
+        elif param=='suspended':
+            message='❗ *Message Sending has been suspended:* '
         else:
-            message='⁉ *Error:* \nError not found.😰😰'
-
+            message='⁉ *Error:* \nFile Specified not found.😰😰'
         self.sendMessage(num,message)
+###############################################################################################################################
 
 
     def iscmd(self,param):
@@ -678,26 +594,22 @@ class Whatsbot(YowInterfaceLayer):
          #   num.find('@g.us')
         #    print('Was Group Message'
         #except  ValueError:
-        message = 'Thank you '+ name + ' for messaging us.'
+        message = 'Thank you '+ name + ' for messaging us.We\'ll come back to you soon.'
         self.sendMessage(num,message)
 
 
-    def getcontext():
-        return self
+
+
+################################################################################################################################
 
     def profile_setStatus(self):
         text = 'Hey there! I am WhatsBot .'
         def onSuccess(resultIqEntity, originalIqEntity):
             print("Status updated successfully")
-
         def onError(errorIqEntity, originalIqEntity):
             print("Error updating status")
-
         entity = SetStatusIqProtocolEntity(text)
         self._sendIq(entity, onSuccess, onError)
-
-
-
 
 
     def OptimiseList(self):
@@ -709,8 +621,7 @@ class Whatsbot(YowInterfaceLayer):
         self.LIST_CONTACTS = tempList
         print('Optimised List: ',self.LIST_CONTACTS)
 
-
-
+################################################################################################################################
 
 def getDbConnection():
     global DB_CONNECTION
@@ -731,3 +642,5 @@ def getDbConnection():
 def getList(url):
     # Download CSV and Store into Database
     return True
+
+################################################################################################################################

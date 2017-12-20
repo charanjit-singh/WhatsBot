@@ -47,10 +47,6 @@ class Message(models.Model):
     # list_id = models.ForeignKey(contact_list)
 
 # Model to store Link of Csv or Xlsx Files
-# class ListLinks(models.Model):
-#     list_id = models.ForeignKey(contact_list,db_column = 'list_id')
-#     list_link = models.FilePathField(path = '/home/WhatsBot/lists',recursive= True)
-
 
 # Sync Status
 class SyncStatus(models.Model):
