@@ -219,6 +219,8 @@ class Whatsbot(YowInterfaceLayer):
     def onNotification(self, notification):
         print('New Notification')
         self.toLower(notification.ack())
+        if isinstance(notification, CreateGroupsNotificationProtocolEntity):  # added on new group
+            self.on_created_group(notification)
 
     @ProtocolEntityCallback("receipt")
     def onReceipt(self, entity):
@@ -347,6 +349,15 @@ class Whatsbot(YowInterfaceLayer):
                 iq = SetPictureIqProtocolEntity(self.getOwnJid(), picturePreview, pictureData)
                 self._sendIq(iq, onSuccess, onError)
 
+
+    def on_created_group(self, createGroupsNotificationProtocolEntity):
+        group_id = createGroupsNotificationProtocolEntity.getGroupId() + "@g.us"
+        if False:
+            # this is a good place to a "Hello Group" message
+            pass
+        else:
+            self.toLower(LeaveGroupsIqProtocolEntity(group_id))
+
 ################################################################################################################################
 
     def spamMessages(self):
@@ -461,6 +472,13 @@ class Whatsbot(YowInterfaceLayer):
         self.start_typing(num)
         time.sleep(0.1)
         self.stop_typing(num)
+
+    def leaveGroup(self,gid):
+        try:
+            entity = LeaveGroupsIqProtocolEntity(gid)
+            self.toLower(entity)
+        except:
+            return
 
 
 ################################################################################################################################
