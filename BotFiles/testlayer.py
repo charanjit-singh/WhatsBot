@@ -206,10 +206,10 @@ class Whatsbot(YowInterfaceLayer):
                         print("Show STATE")
 
                         self.profile_setStatus()
-                        self.profile_setPicture('/home/charanjit/project_whatsbot/BotFiles/wa.jpg')
+                        self.profile_setPicture('wa.jpg')
                         #self.sendStats(messageProtocolEntity.getFrom())
                     elif command == 'image':
-                        self.image_send(messageProtocolEntity.getFrom(),'/home/charanjit/project_whatsbot/BotFiles/wa.jpg')
+                        self.image_send(messageProtocolEntity.getFrom(),'wa.jpg')
                 else:
                     self.sendError(messageProtocolEntity.getFrom(),'incorrect_command')
             else:
@@ -348,7 +348,7 @@ class Whatsbot(YowInterfaceLayer):
                     print("Profile picture updated successfully")
 
                 def onError(errorIqEntity, originalIqEntity):
-                    lprint("Error updating profile picture")
+                    print("Error updating profile picture")
 
                 #example by @aesedepece in https://github.com/tgalal/yowsup/pull/781
                 #modified to supportsrc python3
@@ -421,6 +421,7 @@ class Whatsbot(YowInterfaceLayer):
                     phone_number = phone_number+'@s.whatsapp.net'
 
                     self.lock.acquire()
+
                     self.sendMessage(phone_number,message_text)
 
                     # print('update public.wbot_messagestatus set status = \'1\' where phon_num = \'%s\' and message_id_id = \'%s\'' %(ph_num, message_id))
@@ -479,6 +480,9 @@ class Whatsbot(YowInterfaceLayer):
         self.start_typing(num)
         time.sleep(0.1)
         self.stop_typing(num)
+        while True:
+            if messageEntity.getId() not in self.ackQueue:
+                break
         # time.sleep(random.uniform(0.5,1.0))
 
 
