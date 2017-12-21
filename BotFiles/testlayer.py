@@ -185,7 +185,8 @@ class Whatsbot(YowInterfaceLayer):
                         self.profile_setPicture('wa.jpg')
                         #self.sendStats(messageProtocolEntity.getFrom())
                     elif command == 'image':
-                        self.image_send(messageProtocolEntity.getFrom(),'wa.jpg')
+                        # self.image_send(messageProtocolEntity.getFrom(),'wa.jpg')    
+                        self.sendError(messageProtocolEntity.getFrom(),'incorrect_command')
                     elif command == 'suspend':
                         if DB_CONNECTION == None:
                             getDbConnection()
@@ -590,7 +591,7 @@ class Whatsbot(YowInterfaceLayer):
         except ValueError:
             return jid+'@s.whatsapp.net'
     def showhelp(self,num):
-        message='*WhatsBot*🤖 \nCommands avilable:\n\n👉🏻 *WB help* for showing this message.\n👉🏻 Step 1: Upload contacts list at https://nofile.io (csv format only)\n👉🏻 Step 2: *WB list* <paste nofile.io link here>.\n *Phone numbers must be uploaded on https://nofile.io .*\n👉🏻 Step 3: *WB Start* Sends messages to list specified after this command.\n👉🏻 Step 4: *TYPE THE MESSAGE YOU WANT TO BROADCAST*\n 👉🏻 Step 5: *WB Stop* Stops sending messages after this command to list.\n\n\n🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖'
+        message='*WhatsBot*🤖 \nCommands avilable:\n\n👉🏻 *WB help* for showing this message.\n👉🏻 Step 1: Upload contacts list on WhatsBot Dashboard (csv format only)\n👉🏻 Step 2: *WB list* <paste UniqueId here>.\n *For eg: WB list A1B2C3*\n👉🏻 Step 3: *WB Start* Sends messages to list specified after this command.\n👉🏻 Step 4: *TYPE THE MESSAGE YOU WANT TO BROADCAST*\n 👉🏻 Step 5: *WB Stop* Stops sending messages after this command to list.\n  👉🏻  *WB Suspend* to suspend the sending process.\n\n🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖'
         self.sendMessage(num,message)
     def showoffers(self,num):
         message='Showing offers'
