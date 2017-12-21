@@ -23,7 +23,7 @@ def startBot(credentials):
         .build()
     stack.setCredentials(credentials)
     stack.setProp(PROP_IDENTITY_AUTOTRUST, True)
-    
+
     stack.broadcastEvent(YowLayerEvent(YowNetworkLayer.EVENT_STATE_CONNECT))   #sending the connect signal
     stack.broadcastEvent(credential_Pass)
     # stack.loop(timeout=0.5, count=2) # Let the taskloop run one time for 2 seconds. So as to Setup complete
@@ -105,9 +105,9 @@ def main():
         except KeyboardInterrupt:
             print('Exited')
             break
-        # except :
-        #     print('An Unknown Exception has been Encountered . Sending Sms To Developers')
-        #     break
+        except :
+            print('An Unknown Exception has been Encountered . Sending Sms To Developers')
+            continue
             # send SMS to developers
             # continue
             # Continue the execution
