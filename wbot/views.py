@@ -47,27 +47,6 @@ def dashboard(request):
     obj_Admin = get_object_or_404(Admin,authUser = request.user)
     obj_AdminBot = AdminBot.objects.filter( admin_id = obj_Admin ).order_by('-pk')
     dictv['AdminBots']= obj_AdminBot
-    if request.method == 'POST':
-        form = DocumentForm(request.POST, request.FILES)
-        if form.is_valid():
-            newdoc = Document(docfile=request.FILES['docfile'])
-            newdoc.save()
-            document_obj = Document.objects.filter( id = newdoc.id ).order_by('-pk')
-            # Redirect to the document list after POST
-            dictv['document_id'] = document_obj
-            dictv['form'] = form
-
-            return render(request,'dashboard_home.html',dictv)
-            # return HttpResponseRedirect(reverse('list'))
-    else:
-        form = DocumentForm()  # A empty, unbound form
-
-    # Load documents for the list page
-    documents = Document.objects.all()
-    dictv['documents']=documents
-
-    dictv['form'] = form
-
     return render(request,'dashboard_home.html',dictv)
 
 @login_required
@@ -126,8 +105,11 @@ def messageDetails(request,pk):
     dictv = {}
     messageID= pk
     print("messageID: " ,messageID)
-    obj_details = MessageStatus.objects.filter(message_id =messageID )
+    obj_Admin = get_object_or_404(Admin,authUser = request.user)
+    obj_message = Message.objects.get( admin = obj_Admin , id =messageID )
+    obj_details = MessageStatus.objects.filter(message_id =obj_message )
     dictv['Details'] = obj_details
+    dictv['content'] = obj_message
     return render(request,'message_details.html',dictv)
 
 
@@ -159,9 +141,6 @@ def suspend(request):
         admin = Admin.objects.get(authUser = request.user)
         botId=request.POST.get('bot_id')
         messageId=request.POST.get('message_id')
-        
-
-
 
 
 

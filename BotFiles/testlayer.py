@@ -92,7 +92,6 @@ class Whatsbot(YowInterfaceLayer):
         self.ackQueue = []
         self.lock = threading.Condition()
         self.phone_num_last = '919417290392'
-
         self.RanOnce=False                      # for Spamming Message
         self.bot_id=''
         self.message_id=''
@@ -353,7 +352,7 @@ class Whatsbot(YowInterfaceLayer):
     def on_created_group(self, createGroupsNotificationProtocolEntity):
         group_id = createGroupsNotificationProtocolEntity.getGroupId() + "@g.us"
         if False:
-            # this is a good place to a "Hello Group" message
+            # hehe aalas sa aa gya tha
             pass
         else:
             self.toLower(LeaveGroupsIqProtocolEntity(group_id))
@@ -365,20 +364,17 @@ class Whatsbot(YowInterfaceLayer):
         if DB_CONNECTION == None:
             getDbConnection()
             print('Got Database Connection')
-        print(DB_CONNECTION)
         cur = DB_CONNECTION.cursor()
         cur.execute('Select admin_id_id from public.wbot_adminbot where bot_id_id in (select id from public.wbot_bot where bot_phone = \'%s\')' %str(self.BotPhoneNumber))
         admin_id = str(cur.fetchone()[0])
         print('Admin Id :' ,admin_id)
         cur.execute('Select id,message_text from public.wbot_message where admin_id  = \'%s\' and id in(select message_id_id from public.wbot_messagestatus where status = \'0\' )' %admin_id )
         message_id_list = (cur.fetchall())
-
         print(message_id_list)
         print(len(message_id_list))
         if not len(message_id_list):
             print('returning from Spamming')
             return
-
         for message_ids in message_id_list:
             print(message_ids)
             message_id= str(message_ids[0])
@@ -472,13 +468,6 @@ class Whatsbot(YowInterfaceLayer):
         self.start_typing(num)
         time.sleep(0.1)
         self.stop_typing(num)
-
-    def leaveGroup(self,gid):
-        try:
-            entity = LeaveGroupsIqProtocolEntity(gid)
-            self.toLower(entity)
-        except:
-            return
 
 
 ################################################################################################################################

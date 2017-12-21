@@ -24,11 +24,17 @@
                 <div class="box-header">
                     <h3 class="box-title">Message Details</h3>
 
+                                  <h2>Date Sent: {{content.startedOn}} <h4>Csv File: <a href ="{{content.csvFile}}" class="label-warning">Download </a></h4></h2>
+
+                                  <hr class="style3">
+                                  <h3>Message Content:  {{content.message_text}}</h3>
+                                  <hr>
                     <div class="box-tools">
                         <div class="input-group input-group-sm" style="width: 150px;">
                         </div>
                     </div>
                 </div>
+
                 <!-- /.box-header -->
                 <div class="box-body table-responsive no-padding">
                   <table id="messageDetailsTable" class="table table-striped">
@@ -68,7 +74,7 @@
                       <label class="label label-success">Read</label>
                       {%else%}
 
-                      <label class="label label-danger">Failed</label>
+                      <label class="label label-danger">Suspended</label>
 
                       {%endif%}
                     </td>

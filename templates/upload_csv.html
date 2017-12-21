@@ -1,11 +1,55 @@
+{% extends 'base.html' %}
 
-        <!-- List of uploaded documents -->
-        {% for dc in document_id %}
-            <ul>
-              Your Unique Id is:{{dc.auto_pseudoid}}
-            </ul>
-            <!-- <p>No documents.</p>-->
-        {% endfor %}
+
+{% block content %}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <h1>
+        Upload Contact's CSV File
+        <!-- <small>Version 2.0</small> -->
+    </h1>
+    <!-- <ol class="breadcrumb"> -->
+    <!--   <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li> -->
+    <!--   <li class="active">Dashboard</li> -->
+    <!-- </ol> -->
+</section>
+<div class="modal fade" id="help" role="dialog">
+  <div class="modal-dialog modal-sm">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+        <h4 class="modal-title">Help</h4>
+      </div>
+      <div class="modal-body">
+
+        <p>Please make sure that there is index <b>'phone'</b> in csv file as a header column of contact numbers.</p>
+ <img src="/static/Screenshot_20171221_134737.png" alt="Reload Page please">
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">I've undersood.</button>
+      </div>
+    </div>
+  </div>
+</div>
+<section class="content">
+  <div class="row">
+      <div class="col-xs-12">
+
+          <div class="box box-info">
+              <div class="box-header">
+                  <h3 class="box-title">Upload a file here and note down the unique file ID provided. </h3>
+                  <h3></h3>
+                  <p> *Before uploading the CSV, Please make sure that the file <strong>satisfies the given criteria.</strong><p>
+                    <button type="button" class="btn btn-info btn-sm" data-toggle="modal" data-target="#help">Show Criteria</button>
+
+                  <div class="box-tools">
+                      <div class="input-group input-group-sm" style="width: 150px;">
+                      </div>
+                  </div>
+              </div>
+
+
+
 
         <!-- Upload form. Note enctype attribute! -->
         <form action="{% url "list" %}" method="post" enctype="multipart/form-data">
@@ -15,9 +59,50 @@
             <p>{{ form.docfile.label_tag }} {{ form.docfile.help_text }}</p>
 
             <p>
-                {{ form.docfile.errors }}
+              <p><h4 style="background-color:#e60000; color:white;">{{ form.docfile.errors }}</h4></p>
                 {{ form.docfile }}
             </p>
 
             <p><input type="submit" class="form-control" value="Upload"/></p>
         </form>
+      </div>
+    </div>
+  </div>
+
+      <!-- List of uploaded documents -->
+      {% for dc in document_id %}
+  <div class="modal fade" id="myModal" role="dialog">
+    <div class="modal-dialog modal-sm">
+      <div class="modal-content">
+        <div class="modal-header">
+          <button type="button" class="close" data-dismiss="modal">&times;</button>
+          <h4 class="modal-title">Upload Success</h4>
+        </div>
+        <div class="modal-body">
+          <p>The contact list has been successfully uploaded.</p>
+
+
+<p>    Your Unique Id is:
+    <h3 style="background-color: yellow;"> <b>{{dc.auto_pseudoid}}</b></h3>
+</p>
+        <!-- <p>No documents.</p>-->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-default" data-dismiss="modal">I've noted down the ID.</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+{% endfor %}
+</section>
+
+{%endblock%}
+
+{%block  footerScripts%}
+
+<script>
+
+$('#myModal').modal('show');
+</script>
+{%endblock%}

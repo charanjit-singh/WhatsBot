@@ -9,4 +9,5 @@ class DocumentForm(forms.Form):
         allow_empty_file = False,
         validators = [MimetypeValidator(['text/csv','application/csv','text/plain'])],
         help_text="Upload a CSV file",
+        
     )
