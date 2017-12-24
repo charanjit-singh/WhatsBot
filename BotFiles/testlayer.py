@@ -81,6 +81,7 @@ class Whatsbot(YowInterfaceLayer):
         YowInterfaceLayer.__init__(self)
         self.GOT_CONTACTS = False
         self.csvlink = ''
+        self.synced=False
         self.SYNC_CONTACTS = [] #List of contacts which need to be synced
         self.LIST_CONTACTS = [] # List of Contacts to whom mwssage has to be sent
         print('Layer Running')
@@ -160,7 +161,8 @@ class Whatsbot(YowInterfaceLayer):
                         #getlist(messageProtocolEntity.getBody())
 
                         if self.GOT_CONTACTS==True:
-                            self.forwarding=True;
+                            self.forwarding=True
+                            self.synced=False
                             #warn client
                         else:
                             self.sendError(messageProtocolEntity.getFrom(),'list_not_specified')
@@ -185,7 +187,7 @@ class Whatsbot(YowInterfaceLayer):
                         self.profile_setPicture('wa.jpg')
                         #self.sendStats(messageProtocolEntity.getFrom())
                     elif command == 'image':
-                        # self.image_send(messageProtocolEntity.getFrom(),'wa.jpg')    
+                        # self.image_send(messageProtocolEntity.getFrom(),'wa.jpg')
                         self.sendError(messageProtocolEntity.getFrom(),'incorrect_command')
                     elif command == 'suspend':
                         if DB_CONNECTION == None:
@@ -232,6 +234,7 @@ class Whatsbot(YowInterfaceLayer):
             cur.execute('update public.wbot_messagestatus set status  = \'2\' where phon_num = \'%s\''%entity.getFrom()[0:12])
             print(entity.getFrom()[0:12]+' Read the messages ')
             DB_CONNECTION.commit()
+
         self.toLower(entity.ack())
 
 
@@ -250,6 +253,7 @@ class Whatsbot(YowInterfaceLayer):
     def onAck(self, entity):
         print('Ack: ',entity)
         self.lock.acquire()
+
         if entity.getId() in self.ackQueue:
             self.ackQueue.pop(self.ackQueue.index(entity.getId()))
         if not len(self.ackQueue):
@@ -397,11 +401,14 @@ class Whatsbot(YowInterfaceLayer):
                         phone_number = phone_number[0]
                         ph_num = phone_number
                         self.LIST_CONTACTS.append(ph_num)
+                # if not self.synced:
                 self.OptimiseList()
                 syncEntity = GetSyncIqProtocolEntity(self.LIST_CONTACTS)
+                print('Syncing')
                 self.toLower(syncEntity)
+                self.synced=True
 
-            cur.execute('select phon_num from public.wbot_messagestatus where message_id_id = \'%s\' and  status = \'0\' limit \'40\' '%message_id )
+            cur.execute('select phon_num from public.wbot_messagestatus where message_id_id = \'%s\' and  status = \'0\' limit \'15\' '%message_id )
             phone_nums = cur.fetchall()
 
             for phone_number in phone_nums:
@@ -426,7 +433,7 @@ class Whatsbot(YowInterfaceLayer):
                     raise AuthError()
         cur.close()
         print('-----------------------------------------------------------------------------------------------------------------------------')
-        time.sleep(1)
+        # time.sleep(1)
 
 
     def forwardMessage(self,outgoingMessageProtocolEntity,num):
@@ -458,6 +465,7 @@ class Whatsbot(YowInterfaceLayer):
         num =self.normalise(num)
         self.start_typing(num)
         time.sleep(random.uniform(0.1,0.3))
+        print('To :',num)
         messageEntity= TextMessageProtocolEntity(
             message,
             to=num)
@@ -510,6 +518,7 @@ class Whatsbot(YowInterfaceLayer):
                                 saved_column = df['number']
                             except KeyError:
                                 print('Error CSV')
+                                self.sendError(self.phone_num_last,'incorrect_file')
                                 valid = False
                                 self.GOT_CONTACTS = False
 
@@ -519,6 +528,9 @@ class Whatsbot(YowInterfaceLayer):
                     contact = str(contact)
                     contact.replace('-','')
                     contact.replace('+','')
+                    contact.replace('.0','')
+                    if len(contact)<10:
+                        contact='9417290392'
                     if len(contact)==10:
                         contact = '91'+contact
                     elif len(contact) > 10:
@@ -589,6 +601,8 @@ class Whatsbot(YowInterfaceLayer):
             jid.find('@s.whatsapp')
             return jid
         except ValueError:
+            if len(jid)<6:
+                jid='919417290392'
             return jid+'@s.whatsapp.net'
     def showhelp(self,num):
         message='*WhatsBot*🤖 \nCommands avilable:\n\n👉🏻 *WB help* for showing this message.\n👉🏻 Step 1: Upload contacts list on WhatsBot Dashboard (csv format only)\n👉🏻 Step 2: *WB list* <paste UniqueId here>.\n *For eg: WB list A1B2C3*\n👉🏻 Step 3: *WB Start* Sends messages to list specified after this command.\n👉🏻 Step 4: *TYPE THE MESSAGE YOU WANT TO BROADCAST*\n 👉🏻 Step 5: *WB Stop* Stops sending messages after this command to list.\n  👉🏻  *WB Suspend* to suspend the sending process.\n\n🤖🤖🤖🤖🤖🤖🤖🤖🤖🤖'
