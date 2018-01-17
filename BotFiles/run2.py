@@ -92,21 +92,32 @@ def main():
                         print('AuthError')
                         # time.sleep(2)
                         continue
+
                 else:
                     print('No bot available')
+                    if conn is not None:
+                        conn.close()
+
                     # no bot available
                     # call main() again or goto start
                     continue
             else:
                 print('Database not Connected')
+                if conn is not None:
+                    conn.close()
 
                 # Using Contninue to restart
                 continue
         except KeyboardInterrupt:
             print('Exited')
+            if conn is not None:
+                conn.close()
+
             break
         except :
             print('An Unknown Exception has been Encountered . Sending Sms To Developers')
+            if conn is not None:
+                conn.close()
             continue
             # send SMS to developers
             # continue

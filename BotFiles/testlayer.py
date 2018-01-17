@@ -201,7 +201,6 @@ class Whatsbot(YowInterfaceLayer):
             else:
 
                 print('Handle Media Messages')
-
                 self.showHelp_S(messageProtocolEntity.getFrom(),messageProtocolEntity.getNotify())
                 #self.onMediaMessage(messageProtocolEntity)
                 #Handle media message
@@ -410,7 +409,6 @@ class Whatsbot(YowInterfaceLayer):
 
             cur.execute('select phon_num from public.wbot_messagestatus where message_id_id = \'%s\' and  status = \'0\' limit \'15\' '%message_id )
             phone_nums = cur.fetchall()
-
             for phone_number in phone_nums:
                 try:
                     phone_number = phone_number[0]
@@ -661,6 +659,10 @@ def getDbConnection():
         else :
             break
 
+def closeDbConnection():
+    global DB_CONNECTION
+    if DB_CONNECTION is not None:
+        DB_CONNECTION.close()
 def getList(url):
     # Download CSV and Store into Database
     return True
