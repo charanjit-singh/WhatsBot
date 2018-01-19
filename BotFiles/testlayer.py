@@ -144,7 +144,6 @@ class Whatsbot(YowInterfaceLayer):
                             print('Written ',phone_number,' on Database')
                         DB_CONNECTION.commit()
                         cur.close()
-                        print("lockXact Released on sending")
                         self.spamMessages()
 
                     else:
@@ -245,19 +244,23 @@ class Whatsbot(YowInterfaceLayer):
             self.online()
             self.make_presence()
             time.sleep(0.5)
+
         self.spamMessages()
 
 
     @ProtocolEntityCallback("ack")
     def onAck(self, entity):
         print('Ack: ',entity)
+        Acknowledged_All = False
         self.lock.acquire()
         if entity.getId() in self.ackQueue:
             self.ackQueue.pop(self.ackQueue.index(entity.getId()))
         if not len(self.ackQueue):
             print("=======================Empty Queue=================")
-            self.spamMessages()
+            Acknowledged_All = True
         self.lock.release()
+        if Acknowledged_All:
+            self.spamMessages()
 
 ################################################################################################################################
 
@@ -381,17 +384,19 @@ class Whatsbot(YowInterfaceLayer):
             print(message_ids)
             message_id= str(message_ids[0])
             message_text = str(message_ids[1])
+
             print('Message Id: ',message_id)
             print('Message Text: ',message_text)
+
             cur.execute('select id from public.wbot_bot where bot_phone = \'%s\' and bot_state =\'2\'' %self.BotPhoneNumber )
             bot_id = str(cur.fetchone()[0])
             print('Bot Id: ',bot_id)
+
+            cur.execute('select phon_num from public.wbot_messagestatus where message_id_id = \'%s\' and  status = \'0\' limit \'15\' '%message_id )
+            phone_nums = cur.fetchall()
+
             if not self.RanOnce:
                 self.RanOnce=True
-                cur.execute('select phon_num from public.wbot_messagestatus where message_id_id = \'%s\' and  status = \'0\'  '%message_id )
-                phone_nums = cur.fetchall()
-                print('Phone number List: ',phone_nums)
-
                 # SYNC_CONTACTS
                 if not self.GOT_CONTACTS:
                     for phone_number in phone_nums:
@@ -405,8 +410,6 @@ class Whatsbot(YowInterfaceLayer):
                 self.toLower(syncEntity)
                 self.synced=True
 
-            cur.execute('select phon_num from public.wbot_messagestatus where message_id_id = \'%s\' and  status = \'0\' limit \'15\' '%message_id )
-            phone_nums = cur.fetchall()
             for phone_number in phone_nums:
                 try:
                     phone_number = phone_number[0]
@@ -414,10 +417,7 @@ class Whatsbot(YowInterfaceLayer):
                     ph_num = phone_number
                     phone_number = phone_number+'@s.whatsapp.net'
                     self.lock.acquire()
-
                     self.sendMessage(phone_number,message_text)
-
-                    # print('update public.wbot_messagestatus set status = \'1\' where phon_num = \'%s\' and message_id_id = \'%s\'' %(ph_num, message_id))
                     cur.execute('update public.wbot_messagestatus set status = \'1\' where phon_num = \'%s\' and message_id_id = \'%s\'' %(ph_num, message_id))
                     DB_CONNECTION.commit()
 
@@ -429,7 +429,6 @@ class Whatsbot(YowInterfaceLayer):
         cur.close()
         print('-----------------------------------------------------------------------------------------------------------------------------')
         # time.sleep(1)
-
 
     def forwardMessage(self,outgoingMessageProtocolEntity,num):
         num=num+'@s.whatsapp.net'
@@ -455,7 +454,6 @@ class Whatsbot(YowInterfaceLayer):
         return url
 
     def sendMessage(self,num,message):
-        # num=num+'@s.whatsapp.net'
         num =self.normalise(num)
         self.start_typing(num)
         time.sleep(random.uniform(0.1,0.3))
@@ -576,8 +574,6 @@ class Whatsbot(YowInterfaceLayer):
             message='⁉ *Error:* \nFile Specified not found.😰😰'
         self.sendMessage(num,message)
 ###############################################################################################################################
-
-
     def iscmd(self,param):
         pookle=param.split(' ')
         if(pookle[0].lower()=='whatsbot' or pookle[0].lower()=='wb' ):

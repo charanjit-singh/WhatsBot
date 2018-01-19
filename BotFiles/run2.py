@@ -113,7 +113,8 @@ def main():
                 conn.close()
             break
 
-
+        except BotValueReached:
+                print("Bot value reached")
         except :
             print('An Unknown Exception has been Encountered . Sending Sms To Developers')
             if conn is not None:
