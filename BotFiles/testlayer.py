@@ -252,7 +252,6 @@ class Whatsbot(YowInterfaceLayer):
     def onAck(self, entity):
         print('Ack: ',entity)
         self.lock.acquire()
-
         if entity.getId() in self.ackQueue:
             self.ackQueue.pop(self.ackQueue.index(entity.getId()))
         if not len(self.ackQueue):
@@ -352,7 +351,6 @@ class Whatsbot(YowInterfaceLayer):
                 iq = SetPictureIqProtocolEntity(self.getOwnJid(), picturePreview, pictureData)
                 self._sendIq(iq, onSuccess, onError)
 
-
     def on_created_group(self, createGroupsNotificationProtocolEntity):
         group_id = createGroupsNotificationProtocolEntity.getGroupId() + "@g.us"
         if False:
@@ -390,7 +388,7 @@ class Whatsbot(YowInterfaceLayer):
             print('Bot Id: ',bot_id)
             if not self.RanOnce:
                 self.RanOnce=True
-                cur.execute('select phon_num from public.wbot_messagestatus where message_id_id = \'%s\' and  status = \'0\' '%message_id )
+                cur.execute('select phon_num from public.wbot_messagestatus where message_id_id = \'%s\' and  status = \'0\'  '%message_id )
                 phone_nums = cur.fetchall()
                 print('Phone number List: ',phone_nums)
 
@@ -415,7 +413,6 @@ class Whatsbot(YowInterfaceLayer):
                     print('Phone number: ',phone_number)
                     ph_num = phone_number
                     phone_number = phone_number+'@s.whatsapp.net'
-
                     self.lock.acquire()
 
                     self.sendMessage(phone_number,message_text)
@@ -454,7 +451,6 @@ class Whatsbot(YowInterfaceLayer):
             url=_url[2]
         except:
             url='error'
-
         print (url)
         return url
 
