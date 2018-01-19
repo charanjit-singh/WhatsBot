@@ -21,7 +21,7 @@ class Bot(models.Model):
     bot_pwd = models.CharField(max_length=60)
     bot_state = models.IntegerField(default= 0)
     message_count = models.IntegerField(default=0)
-    # 0 = Active, 1  = Blocked
+    # 0 = Active, 1  = Blocked , 2 = Running
 
 # Admin is  Owner of Bot #
 class AdminBot(models.Model):

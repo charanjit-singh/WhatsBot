@@ -61,8 +61,40 @@ def main():
                 # now database has been successfully connected
                 # : Fetch bot phon and Password from Database
                 cur = conn.cursor()
-                cur.execute('Select id,bot_phone,bot_pwd from public.wbot_bot where NOT bot_state = 1 order by  id asc')
+                # get Count of not blocked  bots
+
+                cur.execute('Select id,bot_phone,bot_pwd from public.wbot_bot where not bot_state = 1 order by  id asc')
                 row = cur.fetchone()
+                if row is None:
+                    print('No bot available')
+                    if conn is not None:
+                        conn.close()
+                    # no bot available
+                    # call main() again or goto start
+                    continue
+
+
+                cur.execute('Select id,bot_phone,bot_pwd from public.wbot_bot where  bot_state = 2 order by  id asc')
+                row = cur.fetchone()
+                if row is not None:
+                    BotPhone=str(row[1])
+                    BotPassword = str(row[2])
+                    BotId=str(row[0])
+                else:
+                    #no bot is running Set Bot with minimal count to Running
+                    cur.execute('Select id,bot_phone,bot_pwd from public.wbot_bot where  bot_state = 0 order by  message_count asc')
+                    row = cur.fetchone()
+                    BotPhone=str(row[1])
+                    BotPassword = str(row[2])
+                    BotId=str(row[0])
+                    cur.execute('update public.wbot_bot set bot_state = \'2\' where id = \'%s\''%(str(BotId)))
+                    #set to running : Successfull
+
+                BotCredentials  = (BotPhone,BotPassword)
+
+                # only chakk jehde running
+                # if not Running then
+                # chakk jehde Active with Low Count and Low PK
                 if row is not None:
                     BotPhone = str(row[1])
                     BotPassword = str(row[2])
@@ -76,7 +108,7 @@ def main():
                     # got admin phone number
                     print (row)
                     try:
-                        set_working_sql = " UPDATE  public.wbot_bot SET bot_state = 2 WHERE id = \'"+BotId+"\'"
+                        set_working_sql = "UPDATE  public.wbot_bot SET bot_state = 2 WHERE id = \'"+BotId+"\'"
                         cur.execute(set_working_sql)
                         conn.commit()
                         startBot(BotCredentials)
@@ -88,10 +120,29 @@ def main():
                         # send sms to  admin phone number
                         cur.close()
                         conn.close()
-                        # Using Contninue to restart
+                        # Using Continue to restart
                         print('AuthError')
                         # time.sleep(2)
                         continue
+                    except BotLimitReached:
+                        cur.execute('update public.wbot_bot set bot_state = \'0\' where id = \'%s\''%(str(BotId)))
+                        DB_CONNECTION.commit()
+                        cur.execute('Select id,bot_phone,bot_pwd from public.wbot_bot where  bot_state = 0 order by  message_count asc')
+                        row = cur.fetchone()
+                        print(row)
+                        BotPhone=str(row[1])
+                        BotPassword = str(row[2])
+                        BotId=str(row[0])
+                        cur.execute('update public.wbot_bot set bot_state = \'2\' where id = \'%s\''%(str(BotId)))
+                        conn.commit()
+                        BotCredentials  = (BotPhone,BotPassword)
+                        startBot(BotCredentials)
+
+
+
+
+
+
 
                 else:
                     print('No bot available')
@@ -113,13 +164,12 @@ def main():
                 conn.close()
             break
 
-        except BotValueReached:
-                print("Bot value reached")
-        except :
-            print('An Unknown Exception has been Encountered . Sending Sms To Developers')
-            if conn is not None:
-                conn.close()
-            continue
+        # except :
+        #     print('An Unknown Exception has been Encountered . Sending Sms To Developers')
+        #     if conn is not None:
+        #         conn.close()
+        # #    continue
+        #     break
             # send SMS to developers
             # continue
             # Continue the execution

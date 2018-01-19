@@ -46,7 +46,10 @@ from yowsup.layers.protocol_profiles.protocolentities    import *
 from yowsup.common.tools import Jid
 from yowsup.common.optionalmodules import PILOptionalModule, AxolotlOptionalModule
 import threading
-from sendMessage import SmsSender
+import sendMessage
+
+class BotLimitReached(Exception):
+    pass
 
 forwarding=False
 lockXact=False
@@ -85,7 +88,7 @@ class Whatsbot(YowInterfaceLayer):
         self.synced=False
         self.SYNC_CONTACTS = [] #List of contacts which need to be synced
         self.LIST_CONTACTS = [] # List of Contacts to whom mwssage has to be sent
-        print('Layer Running')
+        print('WhatsBot Running')
         global DB_CONNECTION
         getDbConnection()
         self.connection = DB_CONNECTION
@@ -383,7 +386,24 @@ class Whatsbot(YowInterfaceLayer):
             print('returning from Spamming')
             return
         # get message_count by this bot_id
-        # if count > self.chunkSize:
+        # if number of bots are > 1 then only perform this
+        get_bot_count='Select Count(*) from public.wbot_bot where bot_phone = \'%s\''%(str(self.BotPhoneNumber))
+        cur.execute(get_bot_count)
+        row=cur.fetchone()[0]
+        if row>0:
+            message_count_str = ('Select message_count from public.wbot_bot where bot_phone = \'%s\''%(str(self.BotPhoneNumber)))
+            cur.execute(message_count_str)
+            message_count=str(cur.fetchone()[0])
+            # if count > self.chunkSize:
+            if message_count>self.chunkSize:
+                self.goOffline()
+                raise BotLimitReached()
+            else:
+                message_count=message_count+1;
+                message_count_update_str=('update public.wbot_bot set message_count=\'%s\' where bot_phone = \'%s\' '%(str(message_count),str(self.BotPhoneNumber)))
+                cur.execute(message_count_update_str)
+                DB_CONNECTION.commit()
+
         #   self.offline()
         #   Self.Sara kush bakup karo()
         #   raise BotLimitreached
@@ -476,6 +496,9 @@ class Whatsbot(YowInterfaceLayer):
         time.sleep(0.1)
         self.stop_typing(num)
 
+    def goOffline():
+        self.disconnect()
+        self.broadcastEvent(YowLayerEvent(YowNetworkLayer.EVENT_STATE_DISCONNECT))
 
 ################################################################################################################################
 
