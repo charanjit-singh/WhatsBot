@@ -46,6 +46,7 @@ from yowsup.layers.protocol_profiles.protocolentities    import *
 from yowsup.common.tools import Jid
 from yowsup.common.optionalmodules import PILOptionalModule, AxolotlOptionalModule
 import threading
+from sendMessage import SmsSender
 
 forwarding=False
 lockXact=False

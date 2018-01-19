@@ -3,11 +3,11 @@ import http.cookiejar
 from getpass import getpass
 import sys
 
-def sendMessages(number,message):	 
+def sendMessages(number,message):
 	uname = "9877110677"
 	password = "7589"
 	message = "+".join(message.split(' '))
-	 
+
 	#Logging into the SMS Site
 	url_for_wsms = 'http://site24.way2sms.com/Login1.action?'
 	data_for_wsms = 'username='+uname+'&password='+password+'&Submit=Sign+in'
@@ -19,7 +19,7 @@ def sendMessages(number,message):
 	cookie_opener = urllib.request.build_opener(urllib.request.HTTPCookieProcessor(cookie_jar))
 
 	cookie_opener.addheaders = [('User-Agent','Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/37.0.2062.120 Safari/537.36')]
-	 
+
 	try:
 	    user_open = cookie_opener.open(url_for_wsms, data_for_wsms)
 	except IOError:
@@ -41,5 +41,3 @@ def sendMessages(number,message):
 
 	sys.exit(1)
 	print("SMS has been sent.")
-
-sendMessages("8556833932","this is test message")
