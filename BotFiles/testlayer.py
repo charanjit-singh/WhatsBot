@@ -96,6 +96,7 @@ class Whatsbot(YowInterfaceLayer):
         self.RanOnce=False                      # for Spamming Message
         self.bot_id=''
         self.message_id=''
+        self.chunk_send=1000
 
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
@@ -380,6 +381,11 @@ class Whatsbot(YowInterfaceLayer):
         if not len(message_id_list):
             print('returning from Spamming')
             return
+        # get message_count by this bot_id
+        # if count > self.chunkSize:
+        #   self.offline()
+        #   Self.Sara kush bakup karo()
+        #   raise BotLimitreached
         for message_ids in message_id_list:
             print(message_ids)
             message_id= str(message_ids[0])
@@ -420,7 +426,6 @@ class Whatsbot(YowInterfaceLayer):
                     self.sendMessage(phone_number,message_text)
                     cur.execute('update public.wbot_messagestatus set status = \'1\' where phon_num = \'%s\' and message_id_id = \'%s\'' %(ph_num, message_id))
                     DB_CONNECTION.commit()
-
                     self.lock.release()
                 except AuthError:
                     cur.close()
