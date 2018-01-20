@@ -124,7 +124,7 @@ def main():
                         print('AuthError')
                         # time.sleep(2)
                         continue
-                    except BotLimitReached:
+                    except BufferError:
                         cur.execute('update public.wbot_bot set bot_state = \'0\' where id = \'%s\''%(str(BotId)))
                         DB_CONNECTION.commit()
                         cur.execute('Select id,bot_phone,bot_pwd from public.wbot_bot where  bot_state = 0 order by  message_count asc')

@@ -401,7 +401,7 @@ class Whatsbot(YowInterfaceLayer):
                 cur.execute(message_count_update_str)
                 DB_CONNECTION.commit()
                 self.goOffline()
-                raise BotLimitReached()
+                raise BufferError()
             else:
                 message_count=message_count+1;
                 message_count_update_str=('update public.wbot_bot set message_count=\'%s\' where bot_phone = \'%s\' '%(str(message_count),str(self.BotPhoneNumber)))
