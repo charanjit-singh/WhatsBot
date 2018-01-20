@@ -1,0 +1,92 @@
+{%extends 'base.html' %}
+
+
+{% block content %}
+<!-- Content Header (Page header) -->
+<section class="content-header">
+    <h1>
+        Bots
+        <!-- <small>Version 2.0</small> -->
+    </h1>
+    <!-- <ol class="breadcrumb"> -->
+    <!--   <li><a href="#"><i class="fa fa-dashboard"></i> Home</a></li> -->
+    <!--   <li class="active">Dashboard</li> -->
+    <!-- </ol> -->
+</section>
+
+<!-- Main content -->
+<section class="content">
+    <!-- Info boxes -->
+    <div class="row">
+        <div class="col-xs-12">
+
+            <div class="box box-success">
+                <div class="box-header">
+                    <h3 class="box-title">Send Bulk Messages </h3>
+                    <div class="box-tools">
+                        <div class="input-group input-group-sm" style="width: 150px;">
+                        </div>
+                    </div>
+                </div>
+
+
+                <!-- /.box-header -->
+                <div class="box-body table-responsive no-padding">
+                  <form action='/compose/' method="POST" enctype="multipart/form-data">
+  {% csrf_token %}
+
+    <label for="ListID Upload">Upload CSV File:</label>
+
+  <p>{{ form.non_field_errors }}</p>
+
+
+  <p>
+    <p><h4 style="background-color:#e60000; color:white;">{{ form.docfile.errors }}</h4></p>
+      {{ form.docfile }}
+  </p>
+
+
+  <div class="form-group">
+    <label for="message_content">Message</label>
+    <textarea class="form-control" id="message_content" name = 'message_content' rows="4"></textarea>
+  </div>
+  <div class="form-check">
+    <label class="form-check-label">
+      <input type="checkbox" class="form-check-input">
+      I accept the terms and conditions.
+    </label>
+  </div>
+  <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+
+
+
+
+
+                </div>
+                <!-- /.box-body
+                -->
+            </div>
+
+        </div>
+    </div>
+    <!-- /.row -->
+
+</section>
+<!-- /.content -->
+{% endblock %}
+
+
+{%block footerScripts%}
+<script>
+
+{%if message == 0%}
+alert('Message has been successfully Submitted for processing.')
+{%elif message == 1%}
+alert('Error in CSV File. Please Check Usage Section.')
+{%elif message == 2%}
+alert('Failure !! Please make sure that you have added the Bot before sending messages.')
+{%endif%}
+</script>
+
+{%endblock%}

@@ -31,5 +31,6 @@ urlpatterns = [
     # url(r'media/',views.mediafetch),
     url(r'accounts/login/',views.login),
     url(r'^upload/',views.list,name='list'),
+    url(r'^compose/',views.compose_message),
 
 ]+ static(settings.STATIC_URL, document_root=settings.STATIC_ROOT) + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -12,6 +12,45 @@ from .forms import *
 
 
 
+def getlist(file_path):
+    import pandas as pd
+    LIST_CONTACTS= []
+    valid = True
+    csv_file = open(file_path)
+    df = pd.read_csv(csv_file)
+    try:
+        saved_column = df['phone']
+    except KeyError:
+        try:
+            saved_column = df['contacts']
+        except KeyError:
+            try:
+                saved_column = df['contact']
+            except KeyError:
+                try:
+                    saved_column =df['numbers']
+                except KeyError:
+                    try:
+                        saved_column = df['number']
+                    except KeyError:
+                        print('Error CSV')
+                        valid = False
+    if valid:
+        for contact in saved_column:
+            contact = str(contact)
+            contact.replace('-','')
+            contact.replace('+','')
+            contact.replace('.0','')
+            if len(contact)<10:
+                contact='9417290392'
+            if len(contact)==10:
+                contact = '91'+contact
+            elif len(contact) > 10:
+                contact = contact[-10:]
+                contact = '91'+ contact
+            LIST_CONTACTS.append(contact)
+
+    return LIST_CONTACTS
 
 
 def hasAdmin(user):
@@ -154,6 +193,7 @@ def list(request):
             newdoc = Document(docfile=request.FILES['docfile'])
             newdoc.save()
             document_obj = Document.objects.filter( id = newdoc.id ).order_by('-pk')
+
             # Redirect to the document list after POST
             return render(request,'upload_csv.html',{'document_id': document_obj, 'form': form})
 
@@ -169,4 +209,44 @@ def list(request):
         request,
         'upload_csv.html',
         {'documents': documents, 'form': form}
-)
+        )
+
+@login_required
+@user_passes_test(hasAdmin)
+def compose_message(request):
+    form = DocumentForm()
+    if request.method == 'POST':
+        form = DocumentForm(request.POST, request.FILES)
+        admin_obj = Admin.objects.get(authUser = request.user)
+        message_content = request.POST.get('message_content')
+        bot_obj = Bot.objects.all()
+        bot_count = bot_obj.count()
+        bot_obj = bot_obj[0]
+
+        if not (bot_count):
+            render(request,'compose_message.html',{'message':1})
+        if form.is_valid():
+            newdoc = Document(docfile=request.FILES['docfile'])
+            newdoc.save()
+            document_obj = Document.objects.filter( id = newdoc.id ).order_by('-pk')
+            message_object = Message.objects.create(message_text=message_content ,csvFile= newdoc.docfile.path , admin= admin_obj)
+            LIST_CONTACTS =  getlist(newdoc.docfile.path)
+            if not LIST_CONTACTS:
+                render(request,'compose_message.html',{'message':2})
+            for contact in LIST_CONTACTS:
+                message_status_model = MessageStatus.objects.create(message_id = message_object , phon_num = contact , bot_id = bot_obj )
+
+
+            # Redirect to the composeMessage with success after POST
+            return render(request,'compose_message.html',{'message': 0, 'form': form})
+
+    return render(request,'compose_message.html' ,{'form':form})
+
+@login_required
+@user_passes_test(hasAdmin)
+def send_sms(request):
+    dictv= {}
+    list_id = request.POST.get('listId')
+    message_content = request.POST.get('message_content')
+    #insert into database
+    return JsonResponse(dictv)
