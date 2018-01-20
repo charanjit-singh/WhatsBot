@@ -48,8 +48,6 @@ from yowsup.common.optionalmodules import PILOptionalModule, AxolotlOptionalModu
 import threading
 import sendMessage
 
-class BotLimitReached(Exception):
-    pass
 
 forwarding=False
 lockXact=False
@@ -401,6 +399,7 @@ class Whatsbot(YowInterfaceLayer):
                 cur.execute(message_count_update_str)
                 DB_CONNECTION.commit()
                 self.goOffline()
+                closeDbConnection()
                 raise BufferError()
             else:
                 message_count=message_count+1;
