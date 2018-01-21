@@ -98,7 +98,7 @@ class Whatsbot(YowInterfaceLayer):
         self.RanOnce=False                      # for Spamming Message
         self.bot_id=''
         self.message_id=''
-        self.chunk_send=1000
+        self.chunkSize=1000
 
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
