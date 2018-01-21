@@ -491,7 +491,10 @@ class Whatsbot(YowInterfaceLayer):
             message,
             to=num)
         self.ackQueue.append(messageEntity.getId())
-        self.toLower(messageEntity)
+        try:
+            self.toLower(messageEntity)
+        except AttributeError:
+            print('Ohi Errro')
         # print('Message: ',message,' To: ',num)
         self.stop_typing(num)
         time.sleep(random.uniform(0.1,0.3))
