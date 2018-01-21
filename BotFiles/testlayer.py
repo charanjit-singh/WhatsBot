@@ -499,7 +499,7 @@ class Whatsbot(YowInterfaceLayer):
         time.sleep(0.1)
         self.stop_typing(num)
 
-    def goOffline():
+    def goOffline(self):
         self.disconnect()
         self.broadcastEvent(YowLayerEvent(YowNetworkLayer.EVENT_STATE_DISCONNECT))
 
