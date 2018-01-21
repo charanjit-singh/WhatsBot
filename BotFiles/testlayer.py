@@ -394,7 +394,7 @@ class Whatsbot(YowInterfaceLayer):
             message_count=str(cur.fetchone()[0])
             # if count > self.chunkSize:
             if (int(message_count) % int(self.chunkSize))==0:
-                message_count=message_count+1;
+                message_count=int(message_count)+1;
                 message_count_update_str=('update public.wbot_bot set message_count=\'%s\' where bot_phone = \'%s\' '%(str(message_count),str(self.BotPhoneNumber)))
                 cur.execute(message_count_update_str)
                 DB_CONNECTION.commit()
